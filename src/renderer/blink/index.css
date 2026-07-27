@@ -1,0 +1,21 @@
+@import "tailwindcss";
+/* The blink overlay is purely decorative: never let its DOM capture pointer
+ * events, so clicks pass through to whatever is behind the window. */
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: transparent; pointer-events: none; }
+
+/*
+ * The eyelid blink runs in plain CSS (not framer-motion): SVG transform
+ * animation via CSS is dependable in Chromium and is never disabled by the
+ * OS reduce-motion setting — demonstrating a blink is this overlay's job.
+ * Cycle: a natural double blink, then hold open.
+ */
+.blink-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: eyelid-blink 2.8s ease-in-out infinite;
+}
+
+@keyframes eyelid-blink {
+  0%, 30%, 44%, 58%, 100% { transform: scaleY(1); }
+  36%, 50% { transform: scaleY(0.06); }
+}
