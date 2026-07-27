@@ -1,0 +1,50 @@
+import type { SettingsStore } from './SettingsStore'
+import type { BlinkOverlay } from './BlinkOverlay'
+
+/**
+ * Independent timer that fires the blink reminder on its own interval,
+ * separate from the 20-20-20 break schedule.
+ */
+export class BlinkController {
+  private nextAt = 0
+  private ticker: NodeJS.Timeout | null = null
+
+  constructor(
+    private settings: SettingsStore,
+    private overlay: BlinkOverlay
+  ) {
+    this.settings.onChange(() => this.reschedule(Date.now()))
+  }
+
+  start(): void {
+    this.reschedule(Date.now())
+    this.ticker = setInterval(() => this.tick(), 1000)
+  }
+
+  stop(): void {
+    if (this.ticker) clearInterval(this.ticker)
+    this.ticker = null
+  }
+
+  private reschedule(now: number): void {
+    const { blink } = this.settings.get()
+    this.nextAt = now + blink.intervalMin * 60_000
+  }
+
+  private tick(): void {
+    const { blink } = this.settings.get()
+    if (!blink.enabled) return
+    const now = Date.now()
+    if (now >= this.nextAt) {
+      this.overlay.show(blink.durationSec * 1000)
+      this.nextAt = now + blink.intervalMin * 60_000
+    }
+  }
+
+  /** Preview / "blink now" trigger. */
+  triggerNow(): void {
+    const { blink } = this.settings.get()
+    this.overlay.show(blink.durationSec * 1000)
+    this.reschedule(Date.now())
+  }
+}
