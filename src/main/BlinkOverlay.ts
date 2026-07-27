@@ -8,7 +8,7 @@ const FROST_OPACITY = 0.55
 const FROST_HTML =
   'data:text/html;charset=utf-8,' +
   encodeURIComponent(
-    '<html><body style="margin:0;height:100vh;' +
+    '<html><body style="margin:0;height:100vh;pointer-events:none;' +
       'background:linear-gradient(165deg,rgba(30,64,175,.55) 0%,rgba(29,78,216,.45) 45%,rgba(15,118,110,.40) 100%)">' +
       '</body></html>'
   )
@@ -116,7 +116,15 @@ export class BlinkOverlay {
 
   private prepare(win: BrowserWindow): void {
     win.setAlwaysOnTop(true, 'screen-saver')
-    win.setIgnoreMouseEvents(true, { forward: true })
+    // The overlay is purely decorative and must never steal clicks from the
+    // apps behind it. On macOS `setIgnoreMouseEvents` can be reset by window
+    // state changes and the `forward` option is unreliable for frameless +
+    // transparent windows, so we request plain full pass-through and re-assert
+    // it once the content has painted.
+    win.setIgnoreMouseEvents(true)
+    win.on('ready-to-show', () => {
+      if (!win.isDestroyed()) win.setIgnoreMouseEvents(true)
+    })
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   }
 
