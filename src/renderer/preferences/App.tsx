@@ -26,10 +26,10 @@ export function App(): JSX.Element {
     return <div className="h-screen" style={{ backgroundColor: COLORS.content }} />
 
   const mmss = (ms: number): string => {
-    if (ms < 0) return 'off' // no break type enabled
     const s = Math.max(0, Math.round(ms / 1000))
     return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   }
+  const showCountdown = status !== null && status.msUntilNext >= 0
 
   return (
     <div
@@ -39,12 +39,14 @@ export function App(): JSX.Element {
       <Sidebar active={page} onSelect={setPage} />
       <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
         <div className="titlebar-drag flex h-12 shrink-0 items-center justify-end px-8 pt-2">
-          <span
-            className="rounded-full px-3 py-1 text-[11px] font-medium tabular-nums"
-            style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.secondary }}
-          >
-            Next break {status ? mmss(status.msUntilNext) : '—'}
-          </span>
+          {showCountdown && (
+            <span
+              className="rounded-full px-3 py-1 text-[11px] font-medium tabular-nums"
+              style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.secondary }}
+            >
+              Next break {mmss(status.msUntilNext)}
+            </span>
+          )}
         </div>
         <div className="px-8 pb-10">
           <h1 className="mb-6 text-[22px] font-bold tracking-[-0.01em]">{PAGE_TITLES[page]}</h1>

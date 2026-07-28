@@ -15,12 +15,12 @@ export class TrayController {
     icon.setTemplateImage(true)
     this.tray = new Tray(icon)
     this.tray.setToolTip('EyeProtector')
-    this.render('—')
+    this.render(null)
   }
 
   setCountdown(msUntilNext: number): void {
     if (msUntilNext < 0) {
-      this.render('—') // no break type enabled
+      this.render(null) // no break type enabled — hide the countdown row
       return
     }
     const totalSec = Math.max(0, Math.round(msUntilNext / 1000))
@@ -29,10 +29,14 @@ export class TrayController {
     this.render(`${mm}:${ss}`)
   }
 
-  private render(countdown: string): void {
+  private render(countdown: string | null): void {
     const menu = Menu.buildFromTemplate([
-      { label: `Next break in ${countdown}`, enabled: false },
-      { type: 'separator' },
+      ...(countdown !== null
+        ? ([
+            { label: `Next break in ${countdown}`, enabled: false },
+            { type: 'separator' }
+          ] as Electron.MenuItemConstructorOptions[])
+        : []),
       { label: 'Take a break now', click: () => this.handlers.takeBreakNow() },
       { label: 'Preferences…', click: () => this.handlers.openPreferences() },
       { type: 'separator' },
