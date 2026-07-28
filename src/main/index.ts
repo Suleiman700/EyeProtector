@@ -19,8 +19,11 @@ function openPreferences(): void {
     return
   }
   prefsWin = new BrowserWindow({
-    width: 720,
-    height: 600,
+    width: 980,
+    height: 700,
+    minWidth: 900,
+    minHeight: 640,
+    titleBarStyle: 'hiddenInset',
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -44,6 +47,11 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') app.dock?.hide() // tray-only app
 
   const settings = new SettingsStore()
+  const applyAutostart = (s: AppSettings): void => {
+    app.setLoginItemSettings({ openAtLogin: s.autostart })
+  }
+  applyAutostart(settings.get())
+  settings.onChange(applyAutostart)
   const overlay = new OverlayManager()
   const blinkOverlay = new BlinkOverlay()
 
@@ -53,6 +61,7 @@ app.whenReady().then(() => {
   }
 
   const controller = new BreakController(settings, overlay, broadcastStatus)
+  overlay.onEscape = () => controller.handleAction('skip')
   const blinkController = new BlinkController(settings, blinkOverlay)
 
   tray = new TrayController({
@@ -68,6 +77,8 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.takeBreakNow, () => controller.takeBreakNow())
   ipcMain.on(IPC.takeBlinkNow, () => blinkController.triggerNow())
   ipcMain.on(IPC.blinkDone, () => blinkOverlay.close())
+  ipcMain.handle(IPC.getAppInfo, () => ({ version: app.getVersion() }))
+  ipcMain.on(IPC.quitApp, () => app.quit())
 
   controller.start()
   blinkController.start()

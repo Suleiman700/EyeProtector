@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { playChime } from '../shared/chime'
 
 /**
  * The blink mascot: a friendly LookAway-style face — two capsule eyes that
@@ -12,6 +13,7 @@ export function BlinkScreen(): JSX.Element {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
     window.eyeprotector.getSettings().then((s) => {
+      if (s.sound.enabled) playChime(s.sound.volume)
       timer = setTimeout(() => window.eyeprotector.blinkDone(), s.blink.durationSec * 1000)
     })
     return () => clearTimeout(timer)

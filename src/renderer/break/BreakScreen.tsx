@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { playChime } from '../shared/chime'
 import type { BreakPayload } from '../../shared/ipc'
 
 const RING_R = 110
@@ -26,6 +27,9 @@ export function BreakScreen(): JSX.Element | null {
 
   useEffect(() => {
     if (!payload) return
+    window.eyeprotector.getSettings().then((s) => {
+      if (s.sound.enabled) playChime(s.sound.volume)
+    })
     const startedAt = Date.now()
     const id = setInterval(() => {
       const left = Math.max(0, payload.durationMs - (Date.now() - startedAt))
@@ -36,6 +40,15 @@ export function BreakScreen(): JSX.Element | null {
       }
     }, 200)
     return () => clearInterval(id)
+  }, [payload])
+
+  useEffect(() => {
+    if (!payload || payload.strict) return
+    const h = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') window.eyeprotector.breakAction('skip')
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
   }, [payload])
 
   if (!payload) return null
@@ -125,6 +138,12 @@ export function BreakScreen(): JSX.Element | null {
               Skip
             </button>
           </motion.div>
+        )}
+
+        {!payload.strict && (
+          <p className="mt-6 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
+            esc to skip
+          </p>
         )}
 
         {payload.strict && (

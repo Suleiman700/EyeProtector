@@ -9,8 +9,14 @@ export const IPC = {
   getBreak: 'break:get',
   blinkDone: 'blink:done',
   takeBlinkNow: 'blink:take-now',
-  status: 'status:update'
+  status: 'status:update',
+  getAppInfo: 'app:get-info',
+  quitApp: 'app:quit'
 } as const
+
+export interface AppInfo {
+  version: string
+}
 
 export interface BreakPayload {
   type: BreakType

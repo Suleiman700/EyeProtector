@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type BreakAction, type BreakPayload, type StatusPayload } from '../shared/ipc'
+import {
+  IPC,
+  type AppInfo,
+  type BreakAction,
+  type BreakPayload,
+  type StatusPayload
+} from '../shared/ipc'
 import type { AppSettings } from '../shared/settings'
 
 const api = {
@@ -16,6 +22,8 @@ const api = {
   getBreak: (): Promise<BreakPayload | null> => ipcRenderer.invoke(IPC.getBreak),
   takeBlinkNow: (): void => ipcRenderer.send(IPC.takeBlinkNow),
   blinkDone: (): void => ipcRenderer.send(IPC.blinkDone),
+  getAppInfo: (): Promise<AppInfo> => ipcRenderer.invoke(IPC.getAppInfo),
+  quitApp: (): void => ipcRenderer.send(IPC.quitApp),
   onStatus: (cb: (s: StatusPayload) => void): (() => void) => {
     const h = (_e: unknown, s: StatusPayload): void => cb(s)
     ipcRenderer.on(IPC.status, h)
