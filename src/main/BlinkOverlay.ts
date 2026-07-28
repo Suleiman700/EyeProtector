@@ -14,11 +14,12 @@ const FROST_HTML =
   )
 
 /**
- * Non-blocking blink reminder built from two stacked click-through windows:
+ * Blink reminder built from two stacked windows:
  *  - frost: native vibrancy blur + blue tint, faded to ~50% so the screen
  *    behind stays visible
  *  - face: the blinking mascot renderer, fully opaque so it stays crisp
- * Both fade in/out together and never take focus.
+ * Both fade in/out together and never take focus. They swallow mouse input
+ * while visible so the user genuinely pauses; ESC dismisses early.
  */
 export class BlinkOverlay {
   private frostWin: BrowserWindow | null = null
@@ -116,15 +117,9 @@ export class BlinkOverlay {
 
   private prepare(win: BrowserWindow): void {
     win.setAlwaysOnTop(true, 'screen-saver')
-    // The overlay is purely decorative and must never steal clicks from the
-    // apps behind it. On macOS `setIgnoreMouseEvents` can be reset by window
-    // state changes and the `forward` option is unreliable for frameless +
-    // transparent windows, so we request plain full pass-through and re-assert
-    // it once the content has painted.
-    win.setIgnoreMouseEvents(true)
-    win.on('ready-to-show', () => {
-      if (!win.isDestroyed()) win.setIgnoreMouseEvents(true)
-    })
+    // The overlay blocks clicks while visible: a blink pause means actually
+    // pausing, so clicks must not reach the apps behind it. The window stays
+    // non-focusable — ESC-to-dismiss is the global shortcut.
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   }
 

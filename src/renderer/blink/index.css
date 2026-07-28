@@ -1,7 +1,5 @@
 @import "tailwindcss";
-/* The blink overlay is purely decorative: never let its DOM capture pointer
- * events, so clicks pass through to whatever is behind the window. */
-html, body, #root { height: 100%; margin: 0; overflow: hidden; background: transparent; pointer-events: none; }
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: transparent; }
 
 /*
  * The eyelid blink runs in plain CSS (not framer-motion): SVG transform
