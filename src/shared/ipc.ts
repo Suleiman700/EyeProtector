@@ -27,6 +27,8 @@ export interface BreakPayload {
 
 export type BreakAction = 'complete' | 'skip' | 'postpone'
 
+/** msUntilNext is -1 when no break type is enabled. */
+
 export interface StatusPayload {
   status: string
   msUntilNext: number

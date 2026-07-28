@@ -40,8 +40,14 @@ export function BreaksPage({
         description="Brief pauses that let your eyes refocus on something far away and relax"
         gradient="linear-gradient(120deg, #2DD4BF 0%, #38BDF8 55%, #6366F1 100%)"
         icon={ICON_EYE}
-        onDemo={() => window.eyeprotector.takeBreakNow()}
+        onDemo={() => window.eyeprotector.takeBreakNow('short')}
       >
+        <Row label="Enabled">
+          <Switch
+            checked={settings.short.enabled}
+            onChange={(v) => update({ short: { ...settings.short, enabled: v } })}
+          />
+        </Row>
         <Row label="Strict (cannot skip)">
           <Switch
             checked={settings.short.strict}
@@ -71,8 +77,14 @@ export function BreaksPage({
         description="Longer breaks to stand up, stretch, and give your body a real rest"
         gradient="linear-gradient(120deg, #F472B6 0%, #C084FC 55%, #818CF8 100%)"
         icon={ICON_ARROW_UP}
-        onDemo={() => window.eyeprotector.takeBreakNow()}
+        onDemo={() => window.eyeprotector.takeBreakNow('long')}
       >
+        <Row label="Enabled">
+          <Switch
+            checked={settings.long.enabled}
+            onChange={(v) => update({ long: { ...settings.long, enabled: v } })}
+          />
+        </Row>
         <Row label="Strict (cannot skip)">
           <Switch
             checked={settings.long.strict}

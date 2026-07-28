@@ -56,7 +56,7 @@ describe('SchedulerEngine', () => {
     e.postpone(config.longIntervalMs + 1, config.longIntervalMs)
     const now = config.longIntervalMs
     const nb = e.getNextBreak()
-    expect(nb.type).toBe('long')
+    expect(nb?.type).toBe('long')
     e.beginBreak(now)
     const end = now + config.longDurationMs
     e.completeBreak(end)
@@ -95,5 +95,37 @@ describe('SchedulerEngine', () => {
     e.start(0)
     e.reset(30 * 60_000)
     expect(e.getNextBreak()).toEqual({ type: 'short', dueAt: 30 * 60_000 + config.shortIntervalMs })
+  })
+})
+
+describe('SchedulerEngine enable flags', () => {
+  it('skips a disabled short break and schedules the long one', () => {
+    const e = new SchedulerEngine({ ...config, shortEnabled: false })
+    e.start(0)
+    expect(e.getNextBreak()).toEqual({ type: 'long', dueAt: config.longIntervalMs })
+    expect(e.isDue(config.shortIntervalMs)).toBe(false)
+    expect(e.isDue(config.longIntervalMs)).toBe(true)
+  })
+
+  it('skips a disabled long break and schedules the short one', () => {
+    const e = new SchedulerEngine({ ...config, longEnabled: false })
+    e.start(0)
+    expect(e.getNextBreak()).toEqual({ type: 'short', dueAt: config.shortIntervalMs })
+  })
+
+  it('is never due when both break types are disabled', () => {
+    const e = new SchedulerEngine({ ...config, shortEnabled: false, longEnabled: false })
+    e.start(0)
+    expect(e.getNextBreak()).toBeNull()
+    expect(e.isDue(Number.MAX_SAFE_INTEGER)).toBe(false)
+    expect(e.msUntilNext(0)).toBe(-1)
+  })
+
+  it('beginBreak can force a specific type for demos', () => {
+    const e = new SchedulerEngine(config)
+    e.start(0)
+    const b = e.beginBreak(0, 'long')
+    expect(b.type).toBe('long')
+    expect(e.getStatus()).toBe('breaking')
   })
 })

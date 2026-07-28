@@ -19,6 +19,10 @@ export class TrayController {
   }
 
   setCountdown(msUntilNext: number): void {
+    if (msUntilNext < 0) {
+      this.render('—') // no break type enabled
+      return
+    }
     const totalSec = Math.max(0, Math.round(msUntilNext / 1000))
     const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
     const ss = String(totalSec % 60).padStart(2, '0')

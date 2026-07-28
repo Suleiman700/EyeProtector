@@ -1,6 +1,7 @@
 import type { SchedulerConfig } from './scheduler'
 
 export interface BreakSettings {
+  enabled: boolean
   intervalMin: number
   durationSec: number
   strict: boolean
@@ -27,8 +28,8 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   schemaVersion: 1,
-  short: { intervalMin: 20, durationSec: 20, strict: false },
-  long: { intervalMin: 60, durationSec: 300, strict: false },
+  short: { enabled: true, intervalMin: 20, durationSec: 20, strict: false },
+  long: { enabled: true, intervalMin: 60, durationSec: 300, strict: false },
   blink: { enabled: true, intervalMin: 5, durationSec: 4 },
   preBreakWarningSec: 10,
   sound: { enabled: true, volume: 0.6 },
@@ -41,6 +42,8 @@ export function toSchedulerConfig(s: AppSettings): SchedulerConfig {
     shortIntervalMs: s.short.intervalMin * 60_000,
     shortDurationMs: s.short.durationSec * 1000,
     longIntervalMs: s.long.intervalMin * 60_000,
-    longDurationMs: s.long.durationSec * 1000
+    longDurationMs: s.long.durationSec * 1000,
+    shortEnabled: s.short.enabled,
+    longEnabled: s.long.enabled
   }
 }

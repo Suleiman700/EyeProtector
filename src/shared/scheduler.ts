@@ -3,6 +3,9 @@ export interface SchedulerConfig {
   shortDurationMs: number
   longIntervalMs: number
   longDurationMs: number
+  /** Default true when omitted. */
+  shortEnabled?: boolean
+  longEnabled?: boolean
 }
 
 export type BreakType = 'short' | 'long'
@@ -42,7 +45,12 @@ export class SchedulerEngine {
     this.pausedRemaining = null
   }
 
-  getNextBreak(): NextBreak {
+  getNextBreak(): NextBreak | null {
+    const shortOn = this.config.shortEnabled !== false
+    const longOn = this.config.longEnabled !== false
+    if (!shortOn && !longOn) return null
+    if (!shortOn) return { type: 'long', dueAt: this.nextLongAt }
+    if (!longOn) return { type: 'short', dueAt: this.nextShortAt }
     // Tie or long-sooner → long takes precedence (it's the more important break).
     if (this.nextLongAt <= this.nextShortAt) {
       return { type: 'long', dueAt: this.nextLongAt }
@@ -50,16 +58,20 @@ export class SchedulerEngine {
     return { type: 'short', dueAt: this.nextShortAt }
   }
 
+  /** -1 when no break type is enabled. */
   msUntilNext(now: number): number {
-    return Math.max(0, this.getNextBreak().dueAt - now)
+    const next = this.getNextBreak()
+    if (!next) return -1
+    return Math.max(0, next.dueAt - now)
   }
 
   isDue(now: number): boolean {
-    return this.status === 'running' && now >= this.getNextBreak().dueAt
+    const next = this.getNextBreak()
+    return this.status === 'running' && next !== null && now >= next.dueAt
   }
 
-  beginBreak(now: number): { type: BreakType; endsAt: number } {
-    const { type } = this.getNextBreak()
+  beginBreak(now: number, forceType?: BreakType): { type: BreakType; endsAt: number } {
+    const type = forceType ?? this.getNextBreak()?.type ?? 'short'
     const duration = type === 'short' ? this.config.shortDurationMs : this.config.longDurationMs
     this.status = 'breaking'
     this.currentBreak = { type, endsAt: now + duration }
@@ -67,7 +79,7 @@ export class SchedulerEngine {
   }
 
   completeBreak(now: number): void {
-    const type = this.currentBreak?.type ?? this.getNextBreak().type
+    const type = this.currentBreak?.type ?? this.getNextBreak()?.type ?? 'short'
     // A short break resets the short timer; a long break resets both
     // (you've already rested your eyes, so don't fire a short immediately).
     this.nextShortAt = now + this.config.shortIntervalMs
@@ -79,17 +91,17 @@ export class SchedulerEngine {
   }
 
   skip(now: number): void {
-    const { type } = this.getNextBreak()
+    const type = this.currentBreak?.type ?? this.getNextBreak()?.type
     if (type === 'short') this.nextShortAt = now + this.config.shortIntervalMs
-    else this.nextLongAt = now + this.config.longIntervalMs
+    else if (type === 'long') this.nextLongAt = now + this.config.longIntervalMs
     this.status = 'running'
     this.currentBreak = null
   }
 
   postpone(ms: number, now: number): void {
-    const { type } = this.getNextBreak()
+    const type = this.currentBreak?.type ?? this.getNextBreak()?.type
     if (type === 'short') this.nextShortAt = now + ms
-    else this.nextLongAt = now + ms
+    else if (type === 'long') this.nextLongAt = now + ms
     this.status = 'running'
     this.currentBreak = null
   }

@@ -11,8 +11,17 @@ export class SettingsStore {
 
   get(): AppSettings {
     // Merge over defaults so configs saved before a new key was added still
-    // return a complete, valid settings object.
-    return { ...DEFAULT_SETTINGS, ...this.store.store }
+    // return a complete, valid settings object — including keys added inside
+    // nested groups (e.g. `short.enabled`).
+    const stored = this.store.store
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      short: { ...DEFAULT_SETTINGS.short, ...stored.short },
+      long: { ...DEFAULT_SETTINGS.long, ...stored.long },
+      blink: { ...DEFAULT_SETTINGS.blink, ...stored.blink },
+      sound: { ...DEFAULT_SETTINGS.sound, ...stored.sound }
+    }
   }
 
   set(patch: Partial<AppSettings>): AppSettings {

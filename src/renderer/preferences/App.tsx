@@ -26,6 +26,7 @@ export function App(): JSX.Element {
     return <div className="h-screen" style={{ backgroundColor: COLORS.content }} />
 
   const mmss = (ms: number): string => {
+    if (ms < 0) return 'off' // no break type enabled
     const s = Math.max(0, Math.round(ms / 1000))
     return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   }

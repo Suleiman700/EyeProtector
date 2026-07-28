@@ -2,6 +2,7 @@ import { SchedulerEngine } from '../shared/scheduler'
 import { toSchedulerConfig } from '../shared/settings'
 import type { SettingsStore } from './SettingsStore'
 import type { OverlayManager } from './OverlayManager'
+import type { BreakType } from '../shared/scheduler'
 import type { BreakAction, BreakPayload, StatusPayload } from '../shared/ipc'
 
 export class BreakController {
@@ -38,8 +39,8 @@ export class BreakController {
     })
   }
 
-  private beginBreak(now: number): void {
-    const { type } = this.engine.beginBreak(now)
+  private beginBreak(now: number, forceType?: BreakType): void {
+    const { type } = this.engine.beginBreak(now, forceType)
     const s = this.settings.get()
     const payload: BreakPayload = {
       type,
@@ -50,10 +51,9 @@ export class BreakController {
     this.overlay.show(payload)
   }
 
-  takeBreakNow(): void {
+  takeBreakNow(type?: BreakType): void {
     const now = Date.now()
-    this.engine.postpone(0, now) // make the next break due immediately
-    this.beginBreak(now)
+    this.beginBreak(now, type ?? this.engine.getNextBreak()?.type ?? 'short')
   }
 
   handleAction(action: BreakAction): void {
