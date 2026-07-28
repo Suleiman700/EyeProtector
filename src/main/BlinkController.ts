@@ -11,7 +11,11 @@ export class BlinkController {
 
   constructor(
     private settings: SettingsStore,
-    private overlay: BlinkOverlay
+    private overlay: BlinkOverlay,
+    // Blinks are suppressed while a break overlay is up: stacking the frost
+    // over the break screen would hide it, and both overlays share the
+    // global ESC shortcut.
+    private isBreakActive: () => boolean = () => false
   ) {
     this.settings.onChange(() => this.reschedule(Date.now()))
   }
@@ -34,6 +38,7 @@ export class BlinkController {
   private tick(): void {
     const { blink } = this.settings.get()
     if (!blink.enabled) return
+    if (this.isBreakActive()) return
     const now = Date.now()
     if (now >= this.nextAt) {
       this.overlay.show(blink.durationSec * 1000)
@@ -43,6 +48,7 @@ export class BlinkController {
 
   /** Preview / "blink now" trigger. */
   triggerNow(): void {
+    if (this.isBreakActive()) return
     const { blink } = this.settings.get()
     this.overlay.show(blink.durationSec * 1000)
     this.reschedule(Date.now())

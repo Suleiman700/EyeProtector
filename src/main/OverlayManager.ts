@@ -24,7 +24,10 @@ export class OverlayManager {
       width: bounds.width,
       height: bounds.height,
       frame: false,
-      fullscreen: true,
+      // Not `fullscreen: true`: macOS's fullscreen space transition emits a
+      // synthetic Escape that would instantly trigger ESC-to-skip. A plain
+      // display-bounds window at screen-saver level covers the whole screen
+      // (same approach as BlinkOverlay) and appears instantly.
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,
@@ -49,9 +52,9 @@ export class OverlayManager {
       : win.loadFile(join(__dirname, '../renderer/break/index.html'))
     load.then(() => win.webContents.send(IPC.breakStart, payload))
     win.focus()
-    // The fullscreen screen-saver-level window doesn't reliably take keyboard
-    // focus on macOS, so ESC-to-skip is a global shortcut held while a
-    // non-strict break is visible (same approach as BlinkOverlay).
+    // The screen-saver-level window doesn't reliably take keyboard focus on
+    // macOS, so ESC-to-skip is a global shortcut held while a non-strict
+    // break is visible (same approach as BlinkOverlay).
     if (!payload.strict) {
       globalShortcut.register('Escape', () => this.onEscape?.())
       this.escRegistered = true

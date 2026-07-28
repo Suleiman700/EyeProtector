@@ -62,7 +62,11 @@ app.whenReady().then(() => {
 
   const controller = new BreakController(settings, overlay, broadcastStatus)
   overlay.onEscape = () => controller.handleAction('skip')
-  const blinkController = new BlinkController(settings, blinkOverlay)
+  const blinkController = new BlinkController(
+    settings,
+    blinkOverlay,
+    () => overlay.getCurrentPayload() !== null
+  )
 
   tray = new TrayController({
     openPreferences,
