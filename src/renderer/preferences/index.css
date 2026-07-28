@@ -10,17 +10,6 @@
   background-color: #C6C6C8;
 }
 
-/* Tap-to-edit number fields: hide native spinners so the value reads as plain text */
-.ios-number::-webkit-outer-spin-button,
-.ios-number::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.ios-number {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
 /* Filled iOS button pressed state */
 .ios-filled-btn {
   transition: opacity 0.12s ease;

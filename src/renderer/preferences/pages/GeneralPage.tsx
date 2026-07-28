@@ -1,4 +1,4 @@
-import { Card, Row, Stepper, Switch, VolumeSlider, COLORS } from '../components/controls'
+import { Card, NumberSelect, Row, Switch, VolumeSlider, COLORS, fmtSeconds } from '../components/controls'
 import type { AppSettings } from '../../../shared/settings'
 import type { ReactNode } from 'react'
 
@@ -52,10 +52,10 @@ export function GeneralPage({
       <GroupLabel>Breaks</GroupLabel>
       <Card>
         <Row label="Pre-break warning" last>
-          <Stepper
+          <NumberSelect
             value={settings.preBreakWarningSec}
-            unit="sec"
-            min={0}
+            presets={[0, 5, 10, 15, 20, 30]}
+            format={(n) => (n === 0 ? 'Off' : fmtSeconds(n))}
             onChange={(v) => update({ preBreakWarningSec: v })}
           />
         </Row>

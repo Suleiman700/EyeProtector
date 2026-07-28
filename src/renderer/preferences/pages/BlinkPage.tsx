@@ -1,5 +1,12 @@
 import { FeatureCard } from '../components/FeatureCard'
-import { Row, SelectField, Stepper, Switch, COLORS } from '../components/controls'
+import {
+  NumberSelect,
+  Row,
+  Switch,
+  COLORS,
+  fmtMinutes,
+  fmtSeconds
+} from '../components/controls'
 import { BLINK_DURATION_OPTIONS } from '../../../shared/settings'
 import type { AppSettings } from '../../../shared/settings'
 
@@ -38,17 +45,19 @@ export function BlinkPage({
             />
           </Row>
           <Row label="Show every">
-            <Stepper
+            <NumberSelect
               value={settings.blink.intervalMin}
-              unit="min"
+              presets={[1, 2, 3, 5, 10, 15, 20, 30]}
+              format={fmtMinutes}
               onChange={(v) => update({ blink: { ...settings.blink, intervalMin: v } })}
             />
           </Row>
           <Row label="Duration" last>
-            <SelectField
-              value={String(settings.blink.durationSec)}
-              options={BLINK_DURATION_OPTIONS.map((s) => ({ value: String(s), label: `${s} s` }))}
-              onChange={(v) => update({ blink: { ...settings.blink, durationSec: Number(v) } })}
+            <NumberSelect
+              value={settings.blink.durationSec}
+              presets={BLINK_DURATION_OPTIONS}
+              format={fmtSeconds}
+              onChange={(v) => update({ blink: { ...settings.blink, durationSec: v } })}
             />
           </Row>
         </FeatureCard>

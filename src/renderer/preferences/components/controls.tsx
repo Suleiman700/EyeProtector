@@ -73,31 +73,39 @@ export function Switch({
   )
 }
 
-export function Stepper({
+export function fmtMinutes(min: number): string {
+  if (min < 60) return `${min} min`
+  return min % 60 === 0 ? `${min / 60} h` : `${Math.floor(min / 60)} h ${min % 60} min`
+}
+
+export function fmtSeconds(sec: number): string {
+  if (sec < 60) return `${sec} sec`
+  return sec % 60 === 0 ? `${sec / 60} min` : `${Math.floor(sec / 60)} min ${sec % 60} sec`
+}
+
+/**
+ * Numeric picker rendered as an iOS-style select over preset values. The
+ * current value is injected into the list if it isn't a preset (e.g. saved
+ * by an older build), so the trigger never shows blank.
+ */
+export function NumberSelect({
   value,
-  unit,
-  min = 1,
+  presets,
+  format,
   onChange
 }: {
   value: number
-  unit: string
-  min?: number
+  presets: number[]
+  format: (n: number) => string
   onChange: (v: number) => void
 }): JSX.Element {
+  const values = presets.includes(value) ? presets : [...presets, value].sort((a, b) => a - b)
   return (
-    <div className="flex items-center gap-1.5">
-      <input
-        type="number"
-        min={min}
-        value={value}
-        onChange={(e) => onChange(Math.max(min, Number(e.target.value)))}
-        className="ios-number w-14 bg-transparent text-right text-[14px] font-normal focus:outline-none"
-        style={{ color: COLORS.accent }}
-      />
-      <span className="text-[14px]" style={{ color: COLORS.secondary }}>
-        {unit}
-      </span>
-    </div>
+    <SelectField
+      value={String(value)}
+      options={values.map((n) => ({ value: String(n), label: format(n) }))}
+      onChange={(v) => onChange(Number(v))}
+    />
   )
 }
 

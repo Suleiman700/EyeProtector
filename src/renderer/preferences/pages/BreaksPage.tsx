@@ -1,5 +1,5 @@
 import { FeatureCard } from '../components/FeatureCard'
-import { Row, Stepper, Switch } from '../components/controls'
+import { NumberSelect, Row, Switch, fmtMinutes, fmtSeconds } from '../components/controls'
 import type { AppSettings } from '../../../shared/settings'
 
 const ICON_EYE = (
@@ -49,16 +49,18 @@ export function BreaksPage({
           />
         </Row>
         <Row label="Show every">
-          <Stepper
+          <NumberSelect
             value={settings.short.intervalMin}
-            unit="min"
+            presets={[5, 10, 15, 20, 25, 30, 45, 60]}
+            format={fmtMinutes}
             onChange={(v) => update({ short: { ...settings.short, intervalMin: v } })}
           />
         </Row>
         <Row label="Duration" last>
-          <Stepper
+          <NumberSelect
             value={settings.short.durationSec}
-            unit="sec"
+            presets={[10, 15, 20, 30, 45, 60, 90, 120]}
+            format={fmtSeconds}
             onChange={(v) => update({ short: { ...settings.short, durationSec: v } })}
           />
         </Row>
@@ -78,16 +80,18 @@ export function BreaksPage({
           />
         </Row>
         <Row label="Show every">
-          <Stepper
+          <NumberSelect
             value={settings.long.intervalMin}
-            unit="min"
+            presets={[30, 45, 60, 90, 120, 180, 240]}
+            format={fmtMinutes}
             onChange={(v) => update({ long: { ...settings.long, intervalMin: v } })}
           />
         </Row>
         <Row label="Duration" last>
-          <Stepper
+          <NumberSelect
             value={settings.long.durationSec}
-            unit="sec"
+            presets={[60, 120, 180, 300, 600, 900]}
+            format={fmtSeconds}
             onChange={(v) => update({ long: { ...settings.long, durationSec: v } })}
           />
         </Row>
