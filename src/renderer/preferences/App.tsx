@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSettings } from './useSettings'
 import { Sidebar, type PageId } from './components/Sidebar'
-import { COLORS, SF_FONT } from './components/controls'
+import { COLORS, SF_FONT, Switch } from './components/controls'
 import { GeneralPage } from './pages/GeneralPage'
 import { BreaksPage } from './pages/BreaksPage'
 import { BlinkPage } from './pages/BlinkPage'
@@ -42,8 +42,17 @@ export function App(): JSX.Element {
     >
       <Sidebar active={page} onSelect={setPage} />
       <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-        <div className="titlebar-drag flex h-12 shrink-0 items-center justify-end px-8 pt-2">
-          {showCountdown && (
+        <div className="titlebar-drag flex h-12 shrink-0 items-center justify-between px-8 pt-2">
+          <div
+            className="flex items-center gap-2 rounded-full px-3 py-1"
+            style={{ backgroundColor: 'rgba(120,120,128,0.12)' }}
+          >
+            <span className="text-[12px] font-semibold" style={{ color: COLORS.text }}>
+              EyeProtector
+            </span>
+            <Switch checked={settings.enabled} onChange={(v) => update({ enabled: v })} />
+          </div>
+          {settings.enabled && showCountdown && (
             <span
               className="rounded-full px-3 py-1 text-[11px] font-medium tabular-nums"
               style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.secondary }}
@@ -53,6 +62,14 @@ export function App(): JSX.Element {
           )}
         </div>
         <div className="px-8 pb-10">
+          {!settings.enabled && (
+            <div
+              className="mb-5 rounded-lg px-4 py-2.5 text-[13px]"
+              style={{ backgroundColor: 'rgba(255,159,10,0.14)', color: '#B25E00' }}
+            >
+              EyeProtector is paused — nothing will run until you turn it back on.
+            </div>
+          )}
           <h1 className="mb-6 text-[22px] font-bold tracking-[-0.01em]">{PAGE_TITLES[page]}</h1>
           {page === 'general' && <GeneralPage settings={settings} update={update} />}
           {page === 'breaks' && <BreaksPage settings={settings} update={update} />}
