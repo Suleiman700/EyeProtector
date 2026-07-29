@@ -21,6 +21,12 @@ const FROST_HTML =
  * Both fade in/out together and never take focus. They swallow mouse input
  * while visible so the user genuinely pauses; ESC dismisses early.
  */
+export interface BlinkRecord {
+  /** Actual time the blink overlay was up, clamped to its planned duration. */
+  restedMs: number
+  completed: boolean
+}
+
 export class BlinkOverlay {
   private frostWin: BrowserWindow | null = null
   private faceWin: BrowserWindow | null = null
@@ -28,8 +34,17 @@ export class BlinkOverlay {
   private fadeTimers = new Set<NodeJS.Timeout>()
   private closing = false
 
-  show(durationMs = 4000): void {
+  /** Set by the main process to feed completed/skipped blinks into Insights. */
+  onRecord: ((r: BlinkRecord) => void) | null = null
+  private session: { shownAt: number; plannedMs: number; record: boolean } | null = null
+
+  isVisible(): boolean {
+    return this.frostWin !== null || this.faceWin !== null
+  }
+
+  show(durationMs = 4000, opts: { record?: boolean } = {}): void {
     if (this.frostWin || this.faceWin) this.destroy()
+    this.session = { shownAt: Date.now(), plannedMs: durationMs, record: opts.record ?? false }
     const { bounds } = screen.getPrimaryDisplay()
 
     const common = {
@@ -95,17 +110,22 @@ export class BlinkOverlay {
     // A global ESC shortcut, held only while the overlay is visible, is the
     // one way to offer press-ESC-to-dismiss.
     this.closing = false
-    globalShortcut.register('Escape', () => this.close())
+    globalShortcut.register('Escape', () => this.close('skipped'))
 
     if (this.safety) clearTimeout(this.safety)
-    this.safety = setTimeout(() => this.close(), durationMs + 2000)
+    this.safety = setTimeout(() => this.close('completed'), durationMs + 2000)
   }
 
-  /** Fade both layers out, then close them. */
-  close(): void {
+  /**
+   * Fade both layers out, then close them. `reason` distinguishes a natural
+   * end (renderer's blinkDone / safety fallback) from an early ESC dismissal,
+   * which is what Insights records as completed vs. skipped.
+   */
+  close(reason: 'completed' | 'skipped' = 'completed'): void {
     if (this.closing) return
     if (!this.frostWin && !this.faceWin) return
     this.closing = true
+    this.recordSession(reason)
     if (this.safety) {
       clearTimeout(this.safety)
       this.safety = null
@@ -113,6 +133,18 @@ export class BlinkOverlay {
     if (this.frostWin) this.fade(this.frostWin, 0, 280)
     if (this.faceWin) this.fade(this.faceWin, 0, 280, () => this.destroy())
     else this.destroy()
+  }
+
+  /** Emit the finished session to Insights exactly once, then clear it. */
+  private recordSession(reason: 'completed' | 'skipped'): void {
+    const session = this.session
+    this.session = null
+    if (!session || !session.record) return
+    const completed = reason === 'completed'
+    const restedMs = completed
+      ? session.plannedMs
+      : Math.min(session.plannedMs, Math.max(0, Date.now() - session.shownAt))
+    this.onRecord?.({ restedMs, completed })
   }
 
   private prepare(win: BrowserWindow): void {
