@@ -9,7 +9,8 @@ export type ReminderPresentation = 'banner' | 'overlay'
 export interface Reminder {
   /** Stable id. Presets use fixed ids ('hydration'…); custom use 'custom-N'. */
   id: string
-  emoji: string
+  /** Id into the curated reminder icon set (see renderer reminderIcons). */
+  icon: string
   title: string
   message: string
   intervalMin: number
@@ -33,7 +34,7 @@ export function validateReminder(r: Reminder): Reminder {
   const title = r.title.trim()
   return {
     ...r,
-    emoji: r.emoji.trim() || '⏰',
+    icon: r.icon.trim() || 'bell',
     title: title || 'Reminder',
     message: r.message.trim(),
     intervalMin: clamp(r.intervalMin, 1, 240),
@@ -46,7 +47,7 @@ export function defaultReminders(): Reminder[] {
   const presets: Reminder[] = [
     {
       id: 'hydration',
-      emoji: '💧',
+      icon: 'droplet',
       title: 'Time to hydrate',
       message: 'Take a sip of water',
       intervalMin: 45,
@@ -57,7 +58,7 @@ export function defaultReminders(): Reminder[] {
     },
     {
       id: 'posture',
-      emoji: '🪑',
+      icon: 'seat',
       title: 'Check your posture',
       message: 'Sit up straight, relax your shoulders',
       intervalMin: 30,
@@ -68,7 +69,7 @@ export function defaultReminders(): Reminder[] {
     },
     {
       id: 'standup',
-      emoji: '🚶',
+      icon: 'walk',
       title: 'Stand up & stretch',
       message: 'Get up and move for a moment',
       intervalMin: 60,
@@ -90,7 +91,7 @@ export function makeCustomReminder(existingIds: string[]): Reminder {
   }
   return validateReminder({
     id,
-    emoji: '⏰',
+    icon: 'bell',
     title: 'New reminder',
     message: 'Time for a quick check-in',
     intervalMin: 30,

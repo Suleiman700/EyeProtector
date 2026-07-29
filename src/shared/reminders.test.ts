@@ -10,7 +10,7 @@ import {
 const base = (over: Partial<Reminder> = {}): Reminder =>
   validateReminder({
     id: 'r1',
-    emoji: '💧',
+    icon: 'droplet',
     title: 'Drink',
     message: 'Sip water',
     intervalMin: 30,

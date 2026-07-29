@@ -67,7 +67,7 @@ export class ReminderController {
   private toPayload(r: Reminder): ReminderPayload {
     return {
       id: r.id,
-      emoji: r.emoji,
+      icon: r.icon,
       title: r.title,
       message: r.message,
       mode: r.presentation,

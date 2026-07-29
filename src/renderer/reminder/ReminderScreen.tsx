@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ReminderIcon } from '../shared/reminderIcons'
 import type { ReminderPayload } from '../../shared/ipc'
 
 export function ReminderScreen(): JSX.Element | null {
@@ -41,7 +42,7 @@ export function ReminderScreen(): JSX.Element | null {
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.28 }}
         >
-          <span className="text-3xl leading-none">{payload.emoji}</span>
+          <ReminderIcon id={payload.icon} size={40} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-semibold">{payload.title}</p>
             {payload.message && (
@@ -83,7 +84,7 @@ export function ReminderScreen(): JSX.Element | null {
               'radial-gradient(circle at 30% 30%, #4338CA, transparent 55%), radial-gradient(circle at 70% 70%, #0f766e, transparent 55%), linear-gradient(#0b1220, #0b1220)'
           }}
         />
-        <div className="text-7xl">{payload.emoji}</div>
+        <ReminderIcon id={payload.icon} size={96} />
         <h1 className="mt-6 text-3xl font-semibold">{payload.title}</h1>
         {payload.message && <p className="mt-3 text-white/70">{payload.message}</p>}
         <div className="mt-10 flex gap-4">
