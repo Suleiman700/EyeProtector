@@ -42,7 +42,15 @@ export function App(): JSX.Element {
     >
       <Sidebar active={page} onSelect={setPage} />
       <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-        <div className="titlebar-drag flex h-12 shrink-0 items-center justify-between px-8 pt-2">
+        <div className="titlebar-drag flex h-12 shrink-0 items-center justify-end gap-3 px-8 pt-2">
+          {settings.enabled && showCountdown && (
+            <span
+              className="rounded-full px-3 py-1 text-[11px] font-medium tabular-nums"
+              style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.secondary }}
+            >
+              Next break {mmss(status.msUntilNext)}
+            </span>
+          )}
           <div
             className="flex items-center gap-2 rounded-full px-3 py-1"
             style={{ backgroundColor: 'rgba(120,120,128,0.12)' }}
@@ -52,14 +60,6 @@ export function App(): JSX.Element {
             </span>
             <Switch checked={settings.enabled} onChange={(v) => update({ enabled: v })} />
           </div>
-          {settings.enabled && showCountdown && (
-            <span
-              className="rounded-full px-3 py-1 text-[11px] font-medium tabular-nums"
-              style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.secondary }}
-            >
-              Next break {mmss(status.msUntilNext)}
-            </span>
-          )}
         </div>
         <div className="px-8 pb-10">
           {!settings.enabled && (
