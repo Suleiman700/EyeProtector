@@ -31,6 +31,8 @@ export interface BreakPayload {
   durationMs: number
   strict: boolean
   theme: string
+  /** True only for the primary display's window, which drives chime + completion. */
+  primary: boolean
 }
 
 export type BreakAction = 'complete' | 'skip' | 'postpone'

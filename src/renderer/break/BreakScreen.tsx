@@ -27,16 +27,20 @@ export function BreakScreen(): JSX.Element | null {
 
   useEffect(() => {
     if (!payload) return
-    window.eyeprotector.getSettings().then((s) => {
-      if (s.sound.enabled) playChime(s.sound.volume)
-    })
+    // On multi-monitor, only the primary window plays the chime and drives
+    // completion — otherwise every screen would chime and fire 'complete'.
+    if (payload.primary) {
+      window.eyeprotector.getSettings().then((s) => {
+        if (s.sound.enabled) playChime(s.sound.volume)
+      })
+    }
     const startedAt = Date.now()
     const id = setInterval(() => {
       const left = Math.max(0, payload.durationMs - (Date.now() - startedAt))
       setRemainingMs(left)
       if (left <= 0) {
         clearInterval(id)
-        window.eyeprotector.breakAction('complete')
+        if (payload.primary) window.eyeprotector.breakAction('complete')
       }
     }, 200)
     return () => clearInterval(id)
