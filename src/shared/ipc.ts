@@ -18,6 +18,10 @@ export const IPC = {
   reminderAction: 'reminder:action',
   takeReminderNow: 'reminder:take-now',
   getReminder: 'reminder:get',
+  checkUpdate: 'update:check',
+  getUpdate: 'update:get',
+  updateAvailable: 'update:changed',
+  openUpdatePage: 'update:open',
   getAppInfo: 'app:get-info',
   quitApp: 'app:quit'
 } as const
@@ -55,3 +59,12 @@ export interface ReminderPayload {
 }
 
 export type ReminderAction = 'complete' | 'skip'
+
+export type UpdateStatus = 'idle' | 'checking' | 'available' | 'up-to-date' | 'error'
+
+export interface UpdateInfo {
+  status: UpdateStatus
+  version?: string
+  notes?: string
+  url?: string
+}

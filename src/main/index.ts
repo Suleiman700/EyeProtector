@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { SettingsStore } from './SettingsStore'
 import { StatsStore } from './StatsStore'
@@ -9,7 +9,14 @@ import { BlinkController } from './BlinkController'
 import { ReminderPresenter } from './ReminderPresenter'
 import { ReminderController } from './ReminderController'
 import { TrayController } from './TrayController'
-import { IPC, type BreakAction, type ReminderAction, type StatusPayload } from '../shared/ipc'
+import { UpdateChecker } from './UpdateChecker'
+import {
+  IPC,
+  type BreakAction,
+  type ReminderAction,
+  type StatusPayload,
+  type UpdateInfo
+} from '../shared/ipc'
 import type { AppSettings } from '../shared/settings'
 import type { StatsData } from '../shared/stats'
 
@@ -78,6 +85,11 @@ app.whenReady().then(() => {
     if (prefsWin && !prefsWin.isDestroyed()) prefsWin.webContents.send(IPC.statsUpdate, s)
   })
 
+  const updates = new UpdateChecker()
+  updates.onChange((info: UpdateInfo) => {
+    if (prefsWin && !prefsWin.isDestroyed()) prefsWin.webContents.send(IPC.updateAvailable, info)
+  })
+
   const controller = new BreakController(settings, overlay, broadcastStatus, stats)
   overlay.onEscape = () => controller.handleAction('skip')
   const blinkController = new BlinkController(settings, blinkOverlay, isScreenBusy)
@@ -99,6 +111,11 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.blinkDone, () => blinkOverlay.close('completed'))
   ipcMain.handle(IPC.getStats, () => stats.getAll())
   ipcMain.handle(IPC.resetStats, () => stats.reset())
+  ipcMain.handle(IPC.checkUpdate, () => updates.check())
+  ipcMain.handle(IPC.getUpdate, () => updates.getLast())
+  ipcMain.on(IPC.openUpdatePage, (_e, url: string) => {
+    if (typeof url === 'string' && /^https:\/\/github\.com\//.test(url)) shell.openExternal(url)
+  })
   ipcMain.handle(IPC.getReminder, () => reminderPresenter.getCurrent())
   ipcMain.on(IPC.reminderAction, (_e, action: ReminderAction) =>
     reminderPresenter.handleAction(action)
@@ -132,6 +149,10 @@ app.whenReady().then(() => {
     }
   })
   openPreferences()
+
+  // Check for a newer GitHub release once per launch, after startup settles.
+  // Failures are swallowed by the checker (stays silent unless manually run).
+  setTimeout(() => void updates.check(), 4000)
 })
 
 app.on('window-all-closed', () => {

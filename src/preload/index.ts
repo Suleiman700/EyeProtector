@@ -6,7 +6,8 @@ import {
   type BreakPayload,
   type ReminderAction,
   type ReminderPayload,
-  type StatusPayload
+  type StatusPayload,
+  type UpdateInfo
 } from '../shared/ipc'
 import type { AppSettings } from '../shared/settings'
 import type { StatsData } from '../shared/stats'
@@ -46,7 +47,15 @@ const api = {
   },
   getReminder: (): Promise<ReminderPayload | null> => ipcRenderer.invoke(IPC.getReminder),
   reminderAction: (action: ReminderAction): void => ipcRenderer.send(IPC.reminderAction, action),
-  takeReminderNow: (id: string): void => ipcRenderer.send(IPC.takeReminderNow, id)
+  takeReminderNow: (id: string): void => ipcRenderer.send(IPC.takeReminderNow, id),
+  checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke(IPC.checkUpdate),
+  getUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke(IPC.getUpdate),
+  openUpdatePage: (url: string): void => ipcRenderer.send(IPC.openUpdatePage, url),
+  onUpdateChange: (cb: (info: UpdateInfo) => void): (() => void) => {
+    const h = (_e: unknown, info: UpdateInfo): void => cb(info)
+    ipcRenderer.on(IPC.updateAvailable, h)
+    return () => ipcRenderer.removeListener(IPC.updateAvailable, h)
+  }
 }
 
 contextBridge.exposeInMainWorld('eyeprotector', api)
