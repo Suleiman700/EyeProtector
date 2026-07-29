@@ -1,12 +1,35 @@
 import { useEffect, useState } from 'react'
 import { COLORS } from '../components/controls'
+import type { UpdateInfo } from '../../../shared/ipc'
+
+function updateLabel(u: UpdateInfo): string {
+  switch (u.status) {
+    case 'checking':
+      return 'Checking…'
+    case 'available':
+      return `Version ${u.version} available`
+    case 'up-to-date':
+      return "You're up to date"
+    case 'error':
+      return "Couldn't check — try again"
+    default:
+      return 'Check for updates'
+  }
+}
 
 export function AboutPage(): JSX.Element {
   const [version, setVersion] = useState('')
+  const [update, setUpdate] = useState<UpdateInfo>({ status: 'idle' })
 
   useEffect(() => {
     window.eyeprotector.getAppInfo().then((info) => setVersion(info.version))
+    window.eyeprotector.getUpdate().then(setUpdate)
+    return window.eyeprotector.onUpdateChange(setUpdate)
   }, [])
+
+  const check = (): void => {
+    window.eyeprotector.checkUpdate().then(setUpdate)
+  }
 
   return (
     <div className="flex flex-col items-center pt-10 text-center">
@@ -36,6 +59,26 @@ export function AboutPage(): JSX.Element {
       <p className="mt-4 max-w-[300px] text-[13px] leading-relaxed" style={{ color: COLORS.secondary }}>
         Gentle blink reminders and screen breaks that keep your eyes healthy while you work.
       </p>
+      <div className="mt-7 flex items-center gap-2">
+        <button
+          className="ios-filled-btn rounded-lg px-4 py-2 text-[13px] font-medium disabled:opacity-60"
+          style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: COLORS.accent }}
+          disabled={update.status === 'checking'}
+          onClick={check}
+        >
+          {updateLabel(update)}
+        </button>
+        {update.status === 'available' && update.url && (
+          <button
+            className="ios-filled-btn rounded-lg px-4 py-2 text-[13px] font-medium text-white"
+            style={{ backgroundColor: COLORS.accent }}
+            onClick={() => window.eyeprotector.openUpdatePage(update.url!)}
+          >
+            Download
+          </button>
+        )}
+      </div>
+
       <button
         className="ios-filled-btn mt-8 rounded-lg px-5 py-2 text-[13px] font-medium"
         style={{ backgroundColor: 'rgba(120,120,128,0.12)', color: '#FF3B30' }}

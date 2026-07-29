@@ -8,7 +8,7 @@ import { BlinkPage } from './pages/BlinkPage'
 import { RemindersPage } from './pages/RemindersPage'
 import { InsightsPage } from './pages/InsightsPage'
 import { AboutPage } from './pages/AboutPage'
-import type { StatusPayload } from '../../shared/ipc'
+import type { StatusPayload, UpdateInfo } from '../../shared/ipc'
 
 const PAGE_TITLES: Record<PageId, string> = {
   general: 'General',
@@ -23,8 +23,15 @@ export function App(): JSX.Element {
   const { settings, update } = useSettings()
   const [status, setStatus] = useState<StatusPayload | null>(null)
   const [page, setPage] = useState<PageId>('breaks')
+  const [upd, setUpd] = useState<UpdateInfo>({ status: 'idle' })
+  const [updDismissed, setUpdDismissed] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
 
   useEffect(() => window.eyeprotector.onStatus(setStatus), [])
+  useEffect(() => {
+    window.eyeprotector.getUpdate().then(setUpd)
+    return window.eyeprotector.onUpdateChange(setUpd)
+  }, [])
 
   if (!settings)
     return <div className="h-screen" style={{ backgroundColor: COLORS.content }} />
@@ -68,6 +75,50 @@ export function App(): JSX.Element {
               style={{ backgroundColor: 'rgba(255,159,10,0.14)', color: '#B25E00' }}
             >
               EyeProtector is paused — nothing will run until you turn it back on.
+            </div>
+          )}
+          {upd.status === 'available' && !updDismissed && (
+            <div
+              className="mb-5 rounded-lg px-4 py-3"
+              style={{ backgroundColor: 'rgba(0,122,255,0.10)', color: COLORS.text }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex-1 text-[13px] font-medium">
+                  EyeProtector {upd.version} is available
+                </span>
+                {upd.notes && (
+                  <button
+                    className="text-[12px]"
+                    style={{ color: COLORS.accent }}
+                    onClick={() => setShowNotes((v) => !v)}
+                  >
+                    {showNotes ? "Hide what's new" : "What's new"}
+                  </button>
+                )}
+                <button
+                  className="rounded-md px-3 py-1 text-[12px] font-medium text-white"
+                  style={{ backgroundColor: COLORS.accent }}
+                  onClick={() => upd.url && window.eyeprotector.openUpdatePage(upd.url)}
+                >
+                  Download
+                </button>
+                <button
+                  aria-label="Dismiss"
+                  className="px-1 text-[13px]"
+                  style={{ color: COLORS.secondary }}
+                  onClick={() => setUpdDismissed(true)}
+                >
+                  ✕
+                </button>
+              </div>
+              {showNotes && upd.notes && (
+                <pre
+                  className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-[12px] leading-relaxed"
+                  style={{ color: COLORS.secondary, fontFamily: SF_FONT }}
+                >
+                  {upd.notes}
+                </pre>
+              )}
             </div>
           )}
           <h1 className="mb-6 text-[22px] font-bold tracking-[-0.01em]">{PAGE_TITLES[page]}</h1>
