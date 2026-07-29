@@ -18,7 +18,8 @@ export default defineConfig({
         input: {
           preferences: resolve('src/renderer/preferences/index.html'),
           break: resolve('src/renderer/break/index.html'),
-          blink: resolve('src/renderer/blink/index.html')
+          blink: resolve('src/renderer/blink/index.html'),
+          reminder: resolve('src/renderer/reminder/index.html')
         }
       }
     }
