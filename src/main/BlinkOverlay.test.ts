@@ -56,9 +56,13 @@ const { windows, MockWin } = vi.hoisted(() => {
   return { windows, MockWin }
 })
 
+const DISPLAY = { id: 1, bounds: { x: 0, y: 0, width: 100, height: 100 } }
 vi.mock('electron', () => ({
   BrowserWindow: MockWin,
-  screen: { getPrimaryDisplay: () => ({ bounds: { x: 0, y: 0, width: 100, height: 100 } }) },
+  screen: {
+    getPrimaryDisplay: () => DISPLAY,
+    getAllDisplays: () => [DISPLAY]
+  },
   globalShortcut: { register: vi.fn(), unregister: vi.fn() }
 }))
 

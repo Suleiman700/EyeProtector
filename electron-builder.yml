@@ -1,0 +1,44 @@
+appId: il.co.istoreil.eyeprotector
+productName: EyeProtector
+copyright: Copyright © iStoreJaber
+
+directories:
+  output: dist
+  buildResources: build
+
+# electron-vite compiles main/preload/renderer to out/; package that plus the
+# manifest. node_modules production deps are included by electron-builder.
+files:
+  - out/**/*
+  - package.json
+
+# App icons are generated from build/icon.png (1024×1024) for every platform.
+mac:
+  category: public.app-category.healthcare-fitness
+  target:
+    - dmg
+    - zip # required for the macOS auto-update feed (future signed builds)
+  # No Apple Developer ID yet — build unsigned. Flip this off (remove the line)
+  # and add signing/notarization config once a Developer ID exists.
+  identity: null
+
+win:
+  target:
+    - nsis
+
+linux:
+  category: Utility
+  target:
+    - AppImage
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+# Where releases + the update manifests (latest-mac.yml / latest.yml) are
+# published. `npm run dist:publish` needs a GH_TOKEN with repo scope in the env.
+publish:
+  provider: github
+  owner: iStoreJaber
+  repo: EyeProtector

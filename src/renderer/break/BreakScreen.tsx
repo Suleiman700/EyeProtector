@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { BreakPayload } from '../../shared/ipc'
+import { playChime } from '../shared/chime'
+import { BREAK_EXTEND_CAP_MS, type BreakPayload } from '../../shared/ipc'
 
 const RING_R = 110
 const RING_C = 2 * Math.PI * RING_R
@@ -8,6 +9,18 @@ const RING_C = 2 * Math.PI * RING_R
 export function BreakScreen(): JSX.Element | null {
   const [payload, setPayload] = useState<BreakPayload | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
+  const [totalMs, setTotalMs] = useState(0)
+  // Added by the ↑ / + shortcut; read inside the interval via a ref so extending
+  // never resets the countdown.
+  const extraRef = useRef(0)
+
+  useEffect(
+    () =>
+      window.eyeprotector.onBreakExtend((ms) => {
+        extraRef.current = Math.min(BREAK_EXTEND_CAP_MS, extraRef.current + ms)
+      }),
+    []
+  )
 
   useEffect(() => {
     // Pull in case the push already fired before this listener mounted
@@ -26,22 +39,42 @@ export function BreakScreen(): JSX.Element | null {
 
   useEffect(() => {
     if (!payload) return
+    extraRef.current = 0
+    setTotalMs(payload.durationMs)
+    // On multi-monitor, only the primary window plays the chime and drives
+    // completion — otherwise every screen would chime and fire 'complete'.
+    if (payload.primary) {
+      window.eyeprotector.getSettings().then((s) => {
+        if (s.sound.enabled) playChime(s.sound.volume)
+      })
+    }
     const startedAt = Date.now()
     const id = setInterval(() => {
-      const left = Math.max(0, payload.durationMs - (Date.now() - startedAt))
+      const total = payload.durationMs + extraRef.current
+      const left = Math.max(0, total - (Date.now() - startedAt))
       setRemainingMs(left)
+      setTotalMs(total)
       if (left <= 0) {
         clearInterval(id)
-        window.eyeprotector.breakAction('complete')
+        if (payload.primary) window.eyeprotector.breakAction('complete')
       }
     }, 200)
     return () => clearInterval(id)
   }, [payload])
 
+  useEffect(() => {
+    if (!payload || payload.strict) return
+    const h = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') window.eyeprotector.breakAction('skip')
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [payload])
+
   if (!payload) return null
 
   const totalSec = Math.ceil(remainingMs / 1000)
-  const progress = payload.durationMs > 0 ? 1 - remainingMs / payload.durationMs : 1
+  const progress = totalMs > 0 ? 1 - remainingMs / totalMs : 1
   const isLong = payload.type === 'long'
   const title = isLong ? 'Time for a long break' : 'Look away and rest your eyes'
   const subtitle = isLong
@@ -127,8 +160,21 @@ export function BreakScreen(): JSX.Element | null {
           </motion.div>
         )}
 
+        {!payload.strict && (
+          <p className="mt-6 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
+            X skip · P postpone · ↑ add 1 min
+          </p>
+        )}
+
         {payload.strict && (
-          <p className="mt-10 text-sm text-white/40">Strict break — please wait until it ends.</p>
+          <>
+            <p className="mt-10 text-sm text-white/40">
+              Strict break — please wait until it ends.
+            </p>
+            <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
+              ↑ add 1 min
+            </p>
+          </>
         )}
       </motion.div>
     </AnimatePresence>

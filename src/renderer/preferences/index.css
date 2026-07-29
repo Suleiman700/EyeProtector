@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+/* iOS grouped-list hairline separator, inset from the left to align with label text */
+.ios-separator {
+  position: absolute;
+  left: 16px;
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background-color: #C6C6C8;
+}
+
+/* Filled iOS button pressed state */
+.ios-filled-btn {
+  transition: opacity 0.12s ease;
+}
+.ios-filled-btn:active {
+  opacity: 0.8;
+}
+
+/* Draggable strip for the hiddenInset title bar; controls stay clickable */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-drag button,
+.titlebar-drag input {
+  -webkit-app-region: no-drag;
+}
+
+/* iOS-style volume slider on a native range input; the filled track is
+   painted via an inline background gradient. */
+.ios-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+.ios-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}

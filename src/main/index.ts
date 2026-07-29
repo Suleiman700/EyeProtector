@@ -1,13 +1,25 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { SettingsStore } from './SettingsStore'
+import { StatsStore } from './StatsStore'
 import { OverlayManager } from './OverlayManager'
 import { BreakController } from './BreakController'
 import { BlinkOverlay } from './BlinkOverlay'
 import { BlinkController } from './BlinkController'
+import { ReminderPresenter } from './ReminderPresenter'
+import { ReminderController } from './ReminderController'
 import { TrayController } from './TrayController'
-import { IPC, type BreakAction, type StatusPayload } from '../shared/ipc'
+import { UpdateChecker } from './UpdateChecker'
+import { PowerController } from './PowerController'
+import {
+  IPC,
+  type BreakAction,
+  type ReminderAction,
+  type StatusPayload,
+  type UpdateInfo
+} from '../shared/ipc'
 import type { AppSettings } from '../shared/settings'
+import type { StatsData } from '../shared/stats'
 
 let prefsWin: BrowserWindow | null = null
 let tray: TrayController
@@ -19,8 +31,11 @@ function openPreferences(): void {
     return
   }
   prefsWin = new BrowserWindow({
-    width: 720,
-    height: 600,
+    width: 980,
+    height: 700,
+    minWidth: 900,
+    minHeight: 640,
+    titleBarStyle: 'hiddenInset',
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -44,20 +59,50 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') app.dock?.hide() // tray-only app
 
   const settings = new SettingsStore()
+  const stats = new StatsStore()
+  const applyAutostart = (s: AppSettings): void => {
+    app.setLoginItemSettings({ openAtLogin: s.autostart })
+  }
+  applyAutostart(settings.get())
+  settings.onChange(applyAutostart)
   const overlay = new OverlayManager()
   const blinkOverlay = new BlinkOverlay()
+  blinkOverlay.onRecord = (r) => stats.record({ category: 'blink', ...r })
+
+  const reminderPresenter = new ReminderPresenter()
+  reminderPresenter.onRecord = (r) => stats.record({ category: 'wellness', ...r })
+
+  // One busy predicate shared by blink + reminders so overlays never stack.
+  const isScreenBusy = (): boolean =>
+    overlay.getCurrentPayload() !== null ||
+    blinkOverlay.isVisible() ||
+    reminderPresenter.isVisible()
 
   const broadcastStatus = (s: StatusPayload): void => {
     tray?.setCountdown(s.msUntilNext)
     if (prefsWin && !prefsWin.isDestroyed()) prefsWin.webContents.send(IPC.status, s)
   }
+  stats.onChange((s: StatsData) => {
+    if (prefsWin && !prefsWin.isDestroyed()) prefsWin.webContents.send(IPC.statsUpdate, s)
+  })
 
-  const controller = new BreakController(settings, overlay, broadcastStatus)
-  const blinkController = new BlinkController(settings, blinkOverlay)
+  const updates = new UpdateChecker()
+  updates.onChange((info: UpdateInfo) => {
+    if (prefsWin && !prefsWin.isDestroyed()) prefsWin.webContents.send(IPC.updateAvailable, info)
+  })
+
+  const controller = new BreakController(settings, overlay, broadcastStatus, stats)
+  overlay.onEscape = () => controller.handleAction('skip')
+  overlay.onPostpone = () => controller.handleAction('postpone')
+  const blinkController = new BlinkController(settings, blinkOverlay, isScreenBusy)
+  const reminderController = new ReminderController(settings, reminderPresenter, isScreenBusy)
 
   tray = new TrayController({
     openPreferences,
     takeBreakNow: () => controller.takeBreakNow(),
+    setEnabled: (enabled: boolean) => settings.set({ enabled }),
+    startFocus: (ms: number) => startFocus(ms),
+    endFocus: () => endFocus(),
     quit: () => app.quit()
   })
 
@@ -65,13 +110,99 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.setSettings, (_e, patch: Partial<AppSettings>) => settings.set(patch))
   ipcMain.handle(IPC.getBreak, () => overlay.getCurrentPayload())
   ipcMain.on(IPC.breakAction, (_e, action: BreakAction) => controller.handleAction(action))
-  ipcMain.on(IPC.takeBreakNow, () => controller.takeBreakNow())
+  ipcMain.on(IPC.takeBreakNow, (_e, type?: 'short' | 'long') => controller.takeBreakNow(type))
   ipcMain.on(IPC.takeBlinkNow, () => blinkController.triggerNow())
-  ipcMain.on(IPC.blinkDone, () => blinkOverlay.close())
+  ipcMain.on(IPC.blinkDone, () => blinkOverlay.close('completed'))
+  ipcMain.handle(IPC.getStats, () => stats.getAll())
+  ipcMain.handle(IPC.resetStats, () => stats.reset())
+  ipcMain.handle(IPC.checkUpdate, () => updates.check())
+  ipcMain.handle(IPC.getUpdate, () => updates.getLast())
+  ipcMain.on(IPC.openUpdatePage, (_e, url: string) => {
+    if (typeof url === 'string' && /^https:\/\/github\.com\//.test(url)) shell.openExternal(url)
+  })
+  ipcMain.handle(IPC.getReminder, () => reminderPresenter.getCurrent())
+  ipcMain.on(IPC.reminderAction, (_e, action: ReminderAction) =>
+    reminderPresenter.handleAction(action)
+  )
+  ipcMain.on(IPC.takeReminderNow, (_e, id: string) => reminderController.triggerNow(id))
+  ipcMain.handle(IPC.getAppInfo, () => ({ version: app.getVersion() }))
+  ipcMain.on(IPC.quitApp, () => app.quit())
 
-  controller.start()
-  blinkController.start()
+  // Schedulers run only when the master toggle is on AND no temporary Focus is
+  // active. `runningNow` guards so ordinary pref edits don't restart timers.
+  let focusUntil: number | null = null
+  let focusTimer: NodeJS.Timeout | null = null
+  let runningNow = false
+  const isFocusActive = (): boolean => focusUntil !== null && Date.now() < focusUntil
+
+  const broadcastFocus = (): void => {
+    if (prefsWin && !prefsWin.isDestroyed()) {
+      prefsWin.webContents.send(IPC.focusUpdate, { until: focusUntil })
+    }
+    tray.setFocus(focusUntil)
+  }
+
+  const applyRunning = (): void => {
+    const shouldRun = settings.get().enabled && !isFocusActive()
+    tray.setEnabled(settings.get().enabled)
+    if (shouldRun === runningNow) return
+    runningNow = shouldRun
+    if (shouldRun) {
+      controller.start()
+      blinkController.start()
+      reminderController.start()
+    } else {
+      controller.stop()
+      blinkController.stop()
+      reminderController.stop()
+      overlay.close()
+      blinkOverlay.close('completed')
+      reminderPresenter.handleAction('skip')
+      broadcastStatus({ status: 'disabled', msUntilNext: -1 })
+    }
+  }
+
+  const startFocus = (ms: number): void => {
+    focusUntil = Date.now() + ms
+    if (focusTimer) clearTimeout(focusTimer)
+    focusTimer = setTimeout(() => endFocus(), ms)
+    applyRunning()
+    broadcastFocus()
+  }
+  const endFocus = (): void => {
+    focusUntil = null
+    if (focusTimer) {
+      clearTimeout(focusTimer)
+      focusTimer = null
+    }
+    applyRunning()
+    broadcastFocus()
+  }
+
+  ipcMain.on(IPC.startFocus, (_e, ms: number) => {
+    if (typeof ms === 'number' && ms > 0) startFocus(ms)
+  })
+  ipcMain.on(IPC.endFocus, () => endFocus())
+  ipcMain.handle(IPC.getFocus, () => ({ until: focusUntil }))
+
+  applyRunning()
+  settings.onChange(() => applyRunning())
+
+  // Battery saver: slow the scheduler poll interval while reducing activity.
+  const power = new PowerController(settings)
+  const applyTickMs = (ms: number): void => {
+    controller.setTickMs(ms)
+    blinkController.setTickMs(ms)
+    reminderController.setTickMs(ms)
+  }
+  power.onChange = applyTickMs
+  applyTickMs(power.tickMs())
+
   openPreferences()
+
+  // Check for a newer GitHub release once per launch, after startup settles —
+  // skipped while battery saver is reducing activity. Failures are swallowed.
+  if (!power.isActive()) setTimeout(() => void updates.check(), 4000)
 })
 
 app.on('window-all-closed', () => {

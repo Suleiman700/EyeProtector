@@ -1,7 +1,5 @@
 @import "tailwindcss";
-/* The blink overlay is purely decorative: never let its DOM capture pointer
- * events, so clicks pass through to whatever is behind the window. */
-html, body, #root { height: 100%; margin: 0; overflow: hidden; background: transparent; pointer-events: none; }
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: transparent; }
 
 /*
  * The eyelid blink runs in plain CSS (not framer-motion): SVG transform
@@ -16,6 +14,17 @@ html, body, #root { height: 100%; margin: 0; overflow: hidden; background: trans
 }
 
 @keyframes eyelid-blink {
-  0%, 30%, 44%, 58%, 100% { transform: scaleY(1); }
-  36%, 50% { transform: scaleY(0.06); }
+  0%, 30%, 44%, 58%, 100% { transform: scaleY(1); opacity: 1; }
+  36%, 50% { transform: scaleY(0.06); opacity: 0; }
+}
+
+/* Closed ^^ arcs appear exactly while the capsules are squashed shut */
+.blink-arc {
+  opacity: 0;
+  animation: arc-blink 2.8s ease-in-out infinite;
+}
+
+@keyframes arc-blink {
+  0%, 30%, 44%, 58%, 100% { opacity: 0; }
+  36%, 50% { opacity: 1; }
 }

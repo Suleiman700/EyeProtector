@@ -14,133 +14,164 @@ const FROST_HTML =
   )
 
 /**
- * Non-blocking blink reminder built from two stacked click-through windows:
- *  - frost: native vibrancy blur + blue tint, faded to ~50% so the screen
- *    behind stays visible
- *  - face: the blinking mascot renderer, fully opaque so it stays crisp
- * Both fade in/out together and never take focus.
+ * Blink reminder built from stacked window pairs (frost + mascot face), one
+ * pair per display so every monitor is covered. Both layers fade in/out
+ * together and never take focus; they swallow mouse input while visible. ESC
+ * dismisses early (a single global shortcut). Only the primary display's face
+ * window (`?primary=1`) plays the chime and fires blinkDone.
  */
+export interface BlinkRecord {
+  /** Actual time the blink overlay was up, clamped to its planned duration. */
+  restedMs: number
+  completed: boolean
+}
+
 export class BlinkOverlay {
-  private frostWin: BrowserWindow | null = null
-  private faceWin: BrowserWindow | null = null
+  private frostWins: BrowserWindow[] = []
+  private faceWins: BrowserWindow[] = []
   private safety: NodeJS.Timeout | null = null
   private fadeTimers = new Set<NodeJS.Timeout>()
   private closing = false
+  private escRegistered = false
 
-  show(durationMs = 4000): void {
-    if (this.frostWin || this.faceWin) this.destroy()
-    const { bounds } = screen.getPrimaryDisplay()
+  /** Set by the main process to feed completed/skipped blinks into Insights. */
+  onRecord: ((r: BlinkRecord) => void) | null = null
+  private session: { shownAt: number; plannedMs: number; record: boolean } | null = null
 
-    const common = {
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
-      frame: false,
-      transparent: true,
-      backgroundColor: '#00000000',
-      hasShadow: false,
-      resizable: false,
-      movable: false,
-      skipTaskbar: true,
-      focusable: false,
-      alwaysOnTop: true,
-      opacity: 0
-    } as const
-
-    const frost = new BrowserWindow({
-      ...common,
-      ...(process.platform === 'darwin' ? { vibrancy: 'fullscreen-ui' as const } : {})
-    })
-    this.prepare(frost)
-    frost.loadURL(FROST_HTML)
-    // Only clear the ref if it still points at *this* window. `close()` is
-    // async, so a replaced window's late 'closed' event must not null out the
-    // ref to the pair that took its place (which would let the next show()
-    // stack a new overlay on top instead of replacing).
-    frost.on('closed', () => {
-      if (this.frostWin === frost) this.frostWin = null
-    })
-
-    // Created second so it stacks above the frost at the same window level.
-    const face = new BrowserWindow({
-      ...common,
-      webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: false
-      }
-    })
-    this.prepare(face)
-    if (process.env['ELECTRON_RENDERER_URL']) {
-      face.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/blink/index.html`)
-    } else {
-      face.loadFile(join(__dirname, '../renderer/blink/index.html'))
-    }
-    face.on('closed', () => {
-      if (this.faceWin === face) this.faceWin = null
-    })
-
-    frost.showInactive()
-    face.showInactive()
-    this.frostWin = frost
-    this.faceWin = face
-
-    this.fade(frost, FROST_OPACITY, 320)
-    this.fade(face, 1, 320)
-
-    // The overlay never takes focus, so the renderer can't hear the keyboard.
-    // A global ESC shortcut, held only while the overlay is visible, is the
-    // one way to offer press-ESC-to-dismiss.
-    this.closing = false
-    globalShortcut.register('Escape', () => this.close())
-
-    if (this.safety) clearTimeout(this.safety)
-    this.safety = setTimeout(() => this.close(), durationMs + 2000)
+  isVisible(): boolean {
+    return this.frostWins.length > 0 || this.faceWins.length > 0
   }
 
-  /** Fade both layers out, then close them. */
-  close(): void {
+  show(durationMs = 4000, opts: { record?: boolean } = {}): void {
+    if (this.isVisible()) this.destroy()
+    this.session = { shownAt: Date.now(), plannedMs: durationMs, record: opts.record ?? false }
+    this.closing = false
+    const primaryId = screen.getPrimaryDisplay().id
+
+    for (const display of screen.getAllDisplays()) {
+      const { bounds } = display
+      const isPrimary = display.id === primaryId
+
+      const common = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
+        hasShadow: false,
+        resizable: false,
+        movable: false,
+        skipTaskbar: true,
+        focusable: false,
+        alwaysOnTop: true,
+        opacity: 0
+      } as const
+
+      const frost = new BrowserWindow({
+        ...common,
+        ...(process.platform === 'darwin' ? { vibrancy: 'fullscreen-ui' as const } : {})
+      })
+      this.prepare(frost)
+      frost.loadURL(FROST_HTML)
+      frost.on('closed', () => {
+        this.frostWins = this.frostWins.filter((w) => w !== frost)
+      })
+
+      // Created second so it stacks above the frost at the same window level.
+      const face = new BrowserWindow({
+        ...common,
+        webPreferences: {
+          preload: join(__dirname, '../preload/index.js'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: false
+        }
+      })
+      this.prepare(face)
+      const search = isPrimary ? 'primary=1' : ''
+      if (process.env['ELECTRON_RENDERER_URL']) {
+        face.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/blink/index.html?${search}`)
+      } else {
+        face.loadFile(join(__dirname, '../renderer/blink/index.html'), { search })
+      }
+      face.on('closed', () => {
+        this.faceWins = this.faceWins.filter((w) => w !== face)
+      })
+
+      frost.showInactive()
+      face.showInactive()
+      this.frostWins.push(frost)
+      this.faceWins.push(face)
+
+      this.fade(frost, FROST_OPACITY, 320)
+      this.fade(face, 1, 320)
+    }
+
+    // The overlays never take focus, so a single global ESC shortcut, held only
+    // while visible, offers press-ESC-to-dismiss across all displays.
+    globalShortcut.register('Escape', () => this.close('skipped'))
+    this.escRegistered = true
+
+    if (this.safety) clearTimeout(this.safety)
+    this.safety = setTimeout(() => this.close('completed'), durationMs + 2000)
+  }
+
+  /**
+   * Fade every layer out, then close them. `reason` distinguishes a natural end
+   * (renderer's blinkDone / safety fallback) from an early ESC dismissal, which
+   * Insights records as completed vs. skipped.
+   */
+  close(reason: 'completed' | 'skipped' = 'completed'): void {
     if (this.closing) return
-    if (!this.frostWin && !this.faceWin) return
+    if (!this.isVisible()) return
     this.closing = true
+    this.recordSession(reason)
     if (this.safety) {
       clearTimeout(this.safety)
       this.safety = null
     }
-    if (this.frostWin) this.fade(this.frostWin, 0, 280)
-    if (this.faceWin) this.fade(this.faceWin, 0, 280, () => this.destroy())
-    else this.destroy()
+    for (const win of [...this.frostWins, ...this.faceWins]) this.fade(win, 0, 280)
+    setTimeout(() => this.destroy(), 300)
+  }
+
+  /** Emit the finished session to Insights exactly once, then clear it. */
+  private recordSession(reason: 'completed' | 'skipped'): void {
+    const session = this.session
+    this.session = null
+    if (!session || !session.record) return
+    const completed = reason === 'completed'
+    const restedMs = completed
+      ? session.plannedMs
+      : Math.min(session.plannedMs, Math.max(0, Date.now() - session.shownAt))
+    this.onRecord?.({ restedMs, completed })
   }
 
   private prepare(win: BrowserWindow): void {
     win.setAlwaysOnTop(true, 'screen-saver')
-    // The overlay is purely decorative and must never steal clicks from the
-    // apps behind it. On macOS `setIgnoreMouseEvents` can be reset by window
-    // state changes and the `forward` option is unreliable for frameless +
-    // transparent windows, so we request plain full pass-through and re-assert
-    // it once the content has painted.
-    win.setIgnoreMouseEvents(true)
-    win.on('ready-to-show', () => {
-      if (!win.isDestroyed()) win.setIgnoreMouseEvents(true)
-    })
+    // The overlay blocks clicks while visible: a blink pause means actually
+    // pausing, so clicks must not reach the apps behind it. The window stays
+    // non-focusable — ESC-to-dismiss is the global shortcut.
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   }
 
   private destroy(): void {
-    globalShortcut.unregister('Escape')
+    if (this.escRegistered) {
+      globalShortcut.unregister('Escape')
+      this.escRegistered = false
+    }
     for (const t of this.fadeTimers) clearInterval(t)
     this.fadeTimers.clear()
     if (this.safety) {
       clearTimeout(this.safety)
       this.safety = null
     }
-    for (const win of [this.faceWin, this.frostWin]) {
-      if (win && !win.isDestroyed()) win.close()
+    for (const win of [...this.faceWins, ...this.frostWins]) {
+      if (!win.isDestroyed()) win.close()
     }
-    this.faceWin = null
-    this.frostWin = null
+    this.faceWins = []
+    this.frostWins = []
     this.closing = false
   }
 
