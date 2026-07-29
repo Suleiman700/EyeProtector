@@ -8,11 +8,12 @@ const BANNER_MARGIN = 24
 
 /**
  * Renders a wellness reminder as either a bottom-right banner (non-blocking,
- * auto-dismiss) or a full-screen overlay (screen-saver level, ESC-to-skip),
- * mirroring OverlayManager/BlinkOverlay. Records the outcome once via onRecord.
+ * auto-dismiss) or a full-screen overlay (screen-saver level, ESC-to-skip), on
+ * every display. Records the outcome once via onRecord. Auto-end and ESC live
+ * here in the main process, so they fire once regardless of window count.
  */
 export class ReminderPresenter {
-  private win: BrowserWindow | null = null
+  private wins: BrowserWindow[] = []
   private current: ReminderPayload | null = null
   private timer: NodeJS.Timeout | null = null
   private escRegistered = false
@@ -27,11 +28,11 @@ export class ReminderPresenter {
   }
 
   isVisible(): boolean {
-    return this.win !== null
+    return this.wins.length > 0
   }
 
   show(payload: ReminderPayload, opts: { record?: boolean } = {}): void {
-    if (this.win) this.destroy()
+    if (this.wins.length) this.destroy()
     this.current = payload
     this.closing = false
     this.session = {
@@ -41,47 +42,47 @@ export class ReminderPresenter {
       record: opts.record ?? false
     }
 
-    const primary = screen.getPrimaryDisplay()
     const isBanner = payload.mode === 'banner'
-    const area = primary.workArea
+    for (const display of screen.getAllDisplays()) {
+      const area = display.workArea
+      const bounds = display.bounds
+      const win = new BrowserWindow({
+        x: isBanner ? area.x + area.width - BANNER_W - BANNER_MARGIN : bounds.x,
+        y: isBanner ? area.y + area.height - BANNER_H - BANNER_MARGIN : bounds.y,
+        width: isBanner ? BANNER_W : bounds.width,
+        height: isBanner ? BANNER_H : bounds.height,
+        frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
+        hasShadow: false,
+        resizable: false,
+        movable: false,
+        skipTaskbar: true,
+        focusable: false,
+        alwaysOnTop: true,
+        show: false,
+        webPreferences: {
+          preload: join(__dirname, '../preload/index.js'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: false
+        }
+      })
+      win.setAlwaysOnTop(true, 'screen-saver')
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      win.on('closed', () => {
+        this.wins = this.wins.filter((w) => w !== win)
+      })
+      const load = process.env['ELECTRON_RENDERER_URL']
+        ? win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/reminder/index.html`)
+        : win.loadFile(join(__dirname, '../renderer/reminder/index.html'))
+      load.then(() => win.webContents.send(IPC.reminderShow, payload))
+      win.showInactive()
+      this.wins.push(win)
+    }
 
-    const win = new BrowserWindow({
-      x: isBanner ? area.x + area.width - BANNER_W - BANNER_MARGIN : primary.bounds.x,
-      y: isBanner ? area.y + area.height - BANNER_H - BANNER_MARGIN : primary.bounds.y,
-      width: isBanner ? BANNER_W : primary.bounds.width,
-      height: isBanner ? BANNER_H : primary.bounds.height,
-      frame: false,
-      transparent: true,
-      backgroundColor: '#00000000',
-      hasShadow: false,
-      resizable: false,
-      movable: false,
-      skipTaskbar: true,
-      focusable: false,
-      alwaysOnTop: true,
-      show: false,
-      webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: false
-      }
-    })
-    win.setAlwaysOnTop(true, 'screen-saver')
-    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-    win.on('closed', () => {
-      if (this.win === win) this.win = null
-    })
-
-    const load = process.env['ELECTRON_RENDERER_URL']
-      ? win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/reminder/index.html`)
-      : win.loadFile(join(__dirname, '../renderer/reminder/index.html'))
-    load.then(() => win.webContents.send(IPC.reminderShow, payload))
-    win.showInactive()
-    this.win = win
-
-    // Overlay is dismissible with ESC (a global shortcut, since the window
-    // never takes focus — same technique as breaks/blink).
+    // Overlay is dismissible with ESC (a single global shortcut — the windows
+    // never take focus, same technique as breaks/blink).
     if (!isBanner) {
       globalShortcut.register('Escape', () => this.handleAction('skip'))
       this.escRegistered = true
@@ -98,7 +99,7 @@ export class ReminderPresenter {
   }
 
   private close(reason: 'completed' | 'skipped'): void {
-    if (this.closing || !this.win) return
+    if (this.closing || !this.wins.length) return
     this.closing = true
     this.recordSession(reason)
     this.destroy()
@@ -128,8 +129,10 @@ export class ReminderPresenter {
       clearTimeout(this.timer)
       this.timer = null
     }
-    if (this.win && !this.win.isDestroyed()) this.win.close()
-    this.win = null
+    for (const win of this.wins) {
+      if (!win.isDestroyed()) win.close()
+    }
+    this.wins = []
     this.current = null
     this.closing = false
   }
