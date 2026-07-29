@@ -20,6 +20,7 @@ export class SettingsStore {
       short: { ...DEFAULT_SETTINGS.short, ...stored.short },
       long: { ...DEFAULT_SETTINGS.long, ...stored.long },
       blink: { ...DEFAULT_SETTINGS.blink, ...stored.blink },
+      reminders: stored.reminders ?? DEFAULT_SETTINGS.reminders,
       sound: { ...DEFAULT_SETTINGS.sound, ...stored.sound }
     }
   }

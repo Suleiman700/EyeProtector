@@ -1,4 +1,5 @@
 import type { SchedulerConfig } from './scheduler'
+import { defaultReminders, type Reminder } from './reminders'
 
 export interface BreakSettings {
   enabled: boolean
@@ -20,6 +21,7 @@ export interface AppSettings {
   short: BreakSettings
   long: BreakSettings
   blink: BlinkSettings
+  reminders: Reminder[]
   preBreakWarningSec: number
   sound: { enabled: boolean; volume: number }
   autostart: boolean
@@ -31,6 +33,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   short: { enabled: true, intervalMin: 20, durationSec: 20, strict: false },
   long: { enabled: true, intervalMin: 60, durationSec: 300, strict: false },
   blink: { enabled: true, intervalMin: 5, durationSec: 4 },
+  reminders: defaultReminders(),
   preBreakWarningSec: 10,
   sound: { enabled: true, volume: 0.6 },
   autostart: false,

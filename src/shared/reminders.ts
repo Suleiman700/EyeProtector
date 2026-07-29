@@ -43,7 +43,7 @@ export function validateReminder(r: Reminder): Reminder {
 }
 
 export function defaultReminders(): Reminder[] {
-  return [
+  const presets: Reminder[] = [
     {
       id: 'hydration',
       emoji: '💧',
@@ -77,7 +77,8 @@ export function defaultReminders(): Reminder[] {
       enabled: true,
       preset: true
     }
-  ].map(validateReminder)
+  ]
+  return presets.map(validateReminder)
 }
 
 export function makeCustomReminder(existingIds: string[]): Reminder {
