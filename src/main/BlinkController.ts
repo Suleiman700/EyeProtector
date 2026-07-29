@@ -41,16 +41,17 @@ export class BlinkController {
     if (this.isBreakActive()) return
     const now = Date.now()
     if (now >= this.nextAt) {
-      this.overlay.show(blink.durationSec * 1000)
+      // Scheduled blink — counts toward Insights.
+      this.overlay.show(blink.durationSec * 1000, { record: true })
       this.nextAt = now + blink.intervalMin * 60_000
     }
   }
 
-  /** Preview / "blink now" trigger. */
+  /** Preview / "blink now" trigger — manual, excluded from Insights. */
   triggerNow(): void {
     if (this.isBreakActive()) return
     const { blink } = this.settings.get()
-    this.overlay.show(blink.durationSec * 1000)
+    this.overlay.show(blink.durationSec * 1000, { record: false })
     this.reschedule(Date.now())
   }
 }

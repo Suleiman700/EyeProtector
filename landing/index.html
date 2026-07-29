@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EyeProtector — Gentle break reminders for healthier eyes</title>
+  <meta name="description" content="EyeProtector lives in your menu bar and reminds you to rest your eyes with the 20-20-20 rule. Free and open source for macOS, Windows and Linux." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Ccircle cx='120' cy='120' r='110' fill='%23007AFF'/%3E%3Cpath d='M74 130q17-24 34 0' stroke='white' stroke-width='16' fill='none' stroke-linecap='round'/%3E%3Cpath d='M132 130q17-24 34 0' stroke='white' stroke-width='16' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body>
+
+  <!-- ======================= NAV ======================= -->
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="EyeProtector home">
+        <svg class="brand-mark" viewBox="0 0 240 240" aria-hidden="true">
+          <circle cx="120" cy="120" r="96" fill="currentColor" opacity="0.12"/>
+          <circle cx="120" cy="120" r="96" fill="none" stroke="currentColor" stroke-width="16"/>
+          <path d="M82 130q13-18 26 0" stroke="currentColor" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path d="M132 130q13-18 26 0" stroke="currentColor" stroke-width="16" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span>EyeProtector</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#preview">Preview</a>
+        <a href="#how">How it works</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Download</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================= HERO ======================= -->
+    <section class="hero">
+      <div class="hero-glow hero-glow-a" aria-hidden="true"></div>
+      <div class="hero-glow hero-glow-b" aria-hidden="true"></div>
+
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Free &amp; open source · macOS · Windows · Linux</p>
+        <h1>Your eyes deserve<br /><em>a break.</em></h1>
+        <p class="lede">
+          EyeProtector waits quietly in your menu bar, then gently dims your screen
+          when it&rsquo;s time to look away — following the 20&#8209;20&#8209;20 rule eye doctors recommend:
+          every 20 minutes, look 20 feet away, for 20 seconds.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">
+            <svg viewBox="0 0 17 20" width="15" height="18" aria-hidden="true"><path fill="currentColor" d="M13.9 10.6c0-2.9 2.4-4.3 2.5-4.4-1.4-2-3.5-2.2-4.2-2.3-1.8-.2-3.5 1-4.4 1s-2.3-1-3.8-1C2 4 .1 5.6-.8 8c-2 3.4-.5 8.4 1.4 11.2.9 1.3 2 2.8 3.5 2.8 1.4-.1 1.9-.9 3.6-.9s2.2.9 3.7.9 2.5-1.4 3.4-2.7c1.1-1.5 1.5-3 1.5-3.1-.1 0-2.9-1.1-2.9-4.4l.5-1.2z" transform="translate(1.4 -3.5)"/></svg>
+            Download for macOS
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Windows</a>
+          <a class="btn btn-ghost" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Linux</a>
+        </div>
+        <p class="cta-note">Version 0.1 · MIT license · No accounts, no tracking</p>
+      </div>
+
+      <!-- Signature: live break-overlay mockup -->
+      <div class="hero-demo reveal" aria-label="Animated preview of the EyeProtector break screen">
+        <div class="mac-window break-window">
+          <div class="mac-titlebar dark">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          </div>
+          <div class="break-screen">
+            <div class="break-ambient" aria-hidden="true"></div>
+            <div class="break-ring-wrap">
+              <svg class="break-ring" width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+                <circle cx="120" cy="120" r="104" stroke="rgba(255,255,255,0.15)" stroke-width="6" fill="none"/>
+                <circle id="ringProgress" cx="120" cy="120" r="104" stroke="#fff" stroke-width="6" fill="none"
+                        stroke-linecap="round" transform="rotate(-90 120 120)"/>
+              </svg>
+              <div class="break-breath" aria-hidden="true"></div>
+              <span class="break-count" id="breakCount">20</span>
+            </div>
+            <h2 class="break-title">Look away and rest your eyes</h2>
+            <p class="break-sub">Focus on something about 6 meters away for a moment.</p>
+            <div class="break-actions" aria-hidden="true">
+              <span class="pill">Postpone 5 min</span>
+              <span class="pill">Skip</span>
+            </div>
+            <p class="break-esc" aria-hidden="true">esc to skip</p>
+          </div>
+        </div>
+        <p class="demo-caption">The break screen — live, exactly as it appears in the app</p>
+      </div>
+    </section>
+
+    <!-- ======================= FEATURES ======================= -->
+    <section class="features section" id="features">
+      <div class="section-head reveal">
+        <h2>Built to protect, designed to disappear</h2>
+        <p>No dashboards to babysit. EyeProtector does its job from the menu bar and only shows up when your eyes need it.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #0AB8A6">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Short &amp; long breaks</h3>
+          <p>Frequent eye-rest pauses plus periodic get-up-and-stretch breaks, each on its own schedule you control.</p>
+        </article>
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #007AFF">
+            <svg viewBox="0 0 24 24"><path d="M4 13q4 4.5 8 4.5t8-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.5v2.5M6.5 16.2l-1.6 2M17.5 16.2l1.6 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Blink reminders</h3>
+          <p>A two-second whisper of an overlay that reminds you to blink — because staring at screens cuts blinking in half.</p>
+        </article>
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #FF9F0A">
+            <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </span>
+          <h3>Gentle or strict</h3>
+          <p>Skippable breaks when you need flexibility, or locked-screen strict mode when you know you&rsquo;ll cheat.</p>
+        </article>
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #AF52DE">
+            <svg viewBox="0 0 24 24"><path d="M5 12h4l2-5 3 10 2-5h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Smart idle skip</h3>
+          <p>Away from your desk? Breaks are skipped and timers reset automatically. It never nags an empty chair.</p>
+        </article>
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #FF375F">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="10" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="9" width="7.5" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 17h4M13 19h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Every display covered</h3>
+          <p>Break overlays appear on all your monitors at once — no sneaking a glance at the second screen.</p>
+        </article>
+        <article class="feature-card reveal">
+          <span class="feature-icon" style="--icon: #8A8A8E">
+            <svg viewBox="0 0 24 24"><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </span>
+          <h3>Set and forget</h3>
+          <p>Launches at login, plays a soft chime if you want one, and stays out of your way the rest of the time.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ======================= PREVIEW ======================= -->
+    <section class="preview section" id="preview">
+      <div class="section-head reveal">
+        <h2>Feels native, because it is</h2>
+        <p>A settings window that reads like it shipped with your Mac. Everything is two clicks away.</p>
+      </div>
+
+      <div class="prefs-demo reveal" aria-label="Preview of the EyeProtector preferences window">
+        <div class="mac-window prefs-window">
+          <div class="prefs-body">
+            <aside class="prefs-sidebar">
+              <div class="mac-titlebar light-inline">
+                <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              </div>
+              <p class="side-head">Productivity &amp; Care</p>
+              <div class="side-item"><span class="side-icon" style="--c:#8A8A8E"><svg viewBox="0 0 24 24"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm8-.5-1.7-.6a6.6 6.6 0 0 0-.6-1.4l.8-1.6-1.9-1.9-1.6.8a6.6 6.6 0 0 0-1.4-.6L13 1h-2l-.6 1.7a6.6 6.6 0 0 0-1.4.6l-1.6-.8-1.9 1.9.8 1.6a6.6 6.6 0 0 0-.6 1.4L4 8v2l1.7.6c.1.5.3 1 .6 1.4l-.8 1.6 1.9 1.9 1.6-.8c.4.3.9.5 1.4.6L11 17h2l.6-1.7c.5-.1 1-.3 1.4-.6l1.6.8 1.9-1.9-.8-1.6c.3-.4.5-.9.6-1.4L20 10z" fill="currentColor" transform="translate(0 3) scale(0.92)"/></svg></span>General</div>
+              <div class="side-item active"><span class="side-icon" style="--c:#0AB8A6"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 8v4l2.6 1.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Breaks</div>
+              <div class="side-item"><span class="side-icon" style="--c:#007AFF"><svg viewBox="0 0 24 24"><path d="M5 13q3.5 4 7 4t7-4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span>Blink Reminders</div>
+              <p class="side-head">EyeProtector</p>
+              <div class="side-item"><span class="side-icon" style="--c:#FF9F0A"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 11v5M12 8v.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span>About</div>
+            </aside>
+            <div class="prefs-content">
+              <div class="prefs-header">
+                <h4>Breaks</h4>
+                <span class="next-pill">Next break 14:26</span>
+              </div>
+              <p class="prefs-desc">Rest your eyes with short pauses and recharge with longer breaks.</p>
+              <div class="prefs-card">
+                <div class="prefs-hero">
+                  <span class="prefs-hero-icon" aria-hidden="true">
+                    <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/><path d="M8 16q4 5 8 5t8-5q-4-5-8-5t-8 5z" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/><circle cx="16" cy="16" r="2.4" fill="rgba(255,255,255,0.9)"/></svg>
+                  </span>
+                </div>
+                <div class="prefs-rows">
+                  <div class="prow"><span>Strict mode</span><span class="switch" aria-hidden="true"></span></div>
+                  <div class="prow"><span>Show every</span><span class="pvalue">20 min ›</span></div>
+                  <div class="prow"><span>Duration</span><span class="pvalue">20 sec ›</span></div>
+                </div>
+                <div class="prefs-foot"><span class="play-pill">▶ Play demo</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side vignettes -->
+        <div class="vignettes">
+          <div class="vignette blink-vignette reveal" aria-label="Blink reminder preview">
+            <div class="blink-face" aria-hidden="true">
+              <svg viewBox="0 0 240 240" width="72" height="72">
+                <circle cx="120" cy="120" r="96" fill="none" stroke="#fff" stroke-width="13"/>
+                <path class="blink-eye" d="M82 130q13-18 26 0" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+                <path class="blink-eye" d="M132 130q13-18 26 0" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="vignette-title">Blink!</p>
+            <p class="vignette-sub">A 2-second nudge, then it&rsquo;s gone</p>
+          </div>
+          <div class="vignette tray-vignette reveal" aria-label="Menu bar preview">
+            <div class="tray-bar" aria-hidden="true">
+              <span class="tray-icon">
+                <svg viewBox="0 0 240 240" width="16" height="16"><circle cx="120" cy="120" r="96" fill="none" stroke="currentColor" stroke-width="20"/><path d="M82 130q13-18 26 0" stroke="currentColor" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M132 130q13-18 26 0" stroke="currentColor" stroke-width="20" fill="none" stroke-linecap="round"/></svg>
+              </span>
+              <span class="tray-time">Mon 9:41 AM</span>
+            </div>
+            <div class="tray-menu" aria-hidden="true">
+              <div class="tray-row strong">Next break in 14:26</div>
+              <div class="tray-row">Take a break now</div>
+              <div class="tray-row">Pause for 1 hour</div>
+              <div class="tray-sep"></div>
+              <div class="tray-row">Preferences…</div>
+            </div>
+            <p class="vignette-title dark-text">Lives in the menu bar</p>
+            <p class="vignette-sub dark-text">Countdown, pause and skip — always one click away</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= HOW IT WORKS ======================= -->
+    <section class="how section" id="how">
+      <div class="section-head reveal">
+        <h2>Healthier eyes in three steps</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-dot" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 4v10m0 0-4-4m4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Install it</h3>
+          <p>Download, open, done. It starts with your computer and never asks for an account.</p>
+        </li>
+        <li class="step reveal">
+          <span class="step-dot" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Keep working</h3>
+          <p>The timer runs quietly in your menu bar. No windows, no popups, no guilt trips.</p>
+        </li>
+        <li class="step reveal">
+          <span class="step-dot" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 12q4-5 8-5t8 5q-4 5-8 5t-8-5z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+          </span>
+          <h3>Rest on cue</h3>
+          <p>When it&rsquo;s time, your screen fades to a calm scene with a breathing guide. Twenty seconds later, you&rsquo;re back.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ======================= DOWNLOAD CTA ======================= -->
+    <section class="cta-band" id="download">
+      <div class="cta-band-inner reveal">
+        <h2>Start protecting your eyes today</h2>
+        <p>Free, open source, and yours to keep. No accounts. No tracking. Just breaks.</p>
+        <div class="cta-row center">
+          <a class="btn btn-light" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Download for macOS</a>
+          <a class="btn btn-outline" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Windows</a>
+          <a class="btn btn-outline" href="https://github.com/iStoreJaber/EyeProtector/releases/latest">Linux</a>
+        </div>
+        <p class="cta-fine">MIT licensed · <a href="https://github.com/iStoreJaber/EyeProtector">View the source on GitHub</a></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================= FOOTER ======================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2026 EyeProtector · MIT License</span>
+      <nav aria-label="Footer">
+        <a href="#features">Features</a>
+        <a href="#preview">Preview</a>
+        <a href="https://github.com/iStoreJaber/EyeProtector">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
