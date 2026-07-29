@@ -52,11 +52,30 @@ export class TrayController {
    * dependency.
    */
   private buildDisabledIcon(): NativeImage {
+    try {
+      return this.buildDisabledIconUnsafe()
+    } catch {
+      // Never let an icon-processing glitch crash tray init; fall back to the
+      // normal icon (the menu checkbox still communicates the disabled state).
+      return this.iconEnabled
+    }
+  }
+
+  private buildDisabledIconUnsafe(): NativeImage {
     const base = nativeImage.createFromPath(
       join(__dirname, '../../resources/trayTemplate@2x.png')
     )
-    const { width, height } = base.getSize()
-    const buf = Buffer.from(base.toBitmap()) // BGRA
+    // getSize() is logical (e.g. 16×16); toBitmap() is physical pixels (32×32
+    // for an @2x asset). Derive the real pixel dimensions + scale factor from
+    // the buffer so createFromBitmap gets a matching size.
+    const logical = base.getSize()
+    const buf = Buffer.from(base.toBitmap()) // BGRA, physical pixels
+    const scaleFactor = Math.max(
+      1,
+      Math.round(Math.sqrt(buf.length / 4 / (logical.width * logical.height)))
+    )
+    const width = logical.width * scaleFactor
+    const height = logical.height * scaleFactor
     const thickness = Math.max(2, Math.round(width / 12))
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -69,7 +88,7 @@ export class TrayController {
         }
       }
     }
-    const img = nativeImage.createFromBitmap(buf, { width, height, scaleFactor: 2 })
+    const img = nativeImage.createFromBitmap(buf, { width, height, scaleFactor })
     img.setTemplateImage(true)
     return img
   }
