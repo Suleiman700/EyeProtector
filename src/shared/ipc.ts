@@ -46,7 +46,6 @@ export type ReminderMode = ReminderPresentation
 
 export interface ReminderPayload {
   id: string
-  icon: string
   title: string
   message: string
   mode: ReminderMode

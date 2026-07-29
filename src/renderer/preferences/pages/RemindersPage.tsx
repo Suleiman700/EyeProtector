@@ -17,7 +17,6 @@ import {
   OVERLAY_DURATION_OPTIONS,
   type Reminder
 } from '../../../shared/reminders'
-import { ReminderIcon, REMINDER_ICON_IDS } from '../../shared/reminderIcons'
 import type { AppSettings } from '../../../shared/settings'
 
 export function RemindersPage({
@@ -49,7 +48,6 @@ export function RemindersPage({
       {reminders.map((r) => (
         <div key={r.id} className="max-w-[520px]">
           <div className="mb-2 flex items-center gap-2">
-            <ReminderIcon id={r.icon} size={24} />
             <input
               className="flex-1 rounded-md bg-transparent text-[15px] font-semibold outline-none"
               style={{ color: COLORS.text }}
@@ -74,23 +72,6 @@ export function RemindersPage({
           <Card>
             <Row label="Enabled">
               <Switch checked={r.enabled} onChange={(v) => patch(r.id, { enabled: v })} />
-            </Row>
-            <Row label="Icon">
-              <div className="flex flex-wrap items-center justify-end gap-1.5">
-                {REMINDER_ICON_IDS.map((iconId) => (
-                  <button
-                    key={iconId}
-                    aria-label={iconId}
-                    onClick={() => patch(r.id, { icon: iconId })}
-                    className="rounded-[8px] p-0.5 transition"
-                    style={{
-                      outline: r.icon === iconId ? `2px solid ${COLORS.accent}` : '2px solid transparent'
-                    }}
-                  >
-                    <ReminderIcon id={iconId} size={24} />
-                  </button>
-                ))}
-              </div>
             </Row>
             <Row label="Message">
               <input
