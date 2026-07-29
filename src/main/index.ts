@@ -100,6 +100,8 @@ app.whenReady().then(() => {
     openPreferences,
     takeBreakNow: () => controller.takeBreakNow(),
     setEnabled: (enabled: boolean) => settings.set({ enabled }),
+    startFocus: (ms: number) => startFocus(ms),
+    endFocus: () => endFocus(),
     quit: () => app.quit()
   })
 
@@ -125,9 +127,26 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.getAppInfo, () => ({ version: app.getVersion() }))
   ipcMain.on(IPC.quitApp, () => app.quit())
 
-  let enabledNow = settings.get().enabled
-  const applyEnabled = (s: AppSettings): void => {
-    if (s.enabled) {
+  // Schedulers run only when the master toggle is on AND no temporary Focus is
+  // active. `runningNow` guards so ordinary pref edits don't restart timers.
+  let focusUntil: number | null = null
+  let focusTimer: NodeJS.Timeout | null = null
+  let runningNow = false
+  const isFocusActive = (): boolean => focusUntil !== null && Date.now() < focusUntil
+
+  const broadcastFocus = (): void => {
+    if (prefsWin && !prefsWin.isDestroyed()) {
+      prefsWin.webContents.send(IPC.focusUpdate, { until: focusUntil })
+    }
+    tray.setFocus(focusUntil)
+  }
+
+  const applyRunning = (): void => {
+    const shouldRun = settings.get().enabled && !isFocusActive()
+    tray.setEnabled(settings.get().enabled)
+    if (shouldRun === runningNow) return
+    runningNow = shouldRun
+    if (shouldRun) {
       controller.start()
       blinkController.start()
       reminderController.start()
@@ -140,15 +159,33 @@ app.whenReady().then(() => {
       reminderPresenter.handleAction('skip')
       broadcastStatus({ status: 'disabled', msUntilNext: -1 })
     }
-    tray.setEnabled(s.enabled)
   }
-  applyEnabled(settings.get())
-  settings.onChange((s) => {
-    if (s.enabled !== enabledNow) {
-      enabledNow = s.enabled
-      applyEnabled(s)
+
+  const startFocus = (ms: number): void => {
+    focusUntil = Date.now() + ms
+    if (focusTimer) clearTimeout(focusTimer)
+    focusTimer = setTimeout(() => endFocus(), ms)
+    applyRunning()
+    broadcastFocus()
+  }
+  const endFocus = (): void => {
+    focusUntil = null
+    if (focusTimer) {
+      clearTimeout(focusTimer)
+      focusTimer = null
     }
+    applyRunning()
+    broadcastFocus()
+  }
+
+  ipcMain.on(IPC.startFocus, (_e, ms: number) => {
+    if (typeof ms === 'number' && ms > 0) startFocus(ms)
   })
+  ipcMain.on(IPC.endFocus, () => endFocus())
+  ipcMain.handle(IPC.getFocus, () => ({ until: focusUntil }))
+
+  applyRunning()
+  settings.onChange(() => applyRunning())
   openPreferences()
 
   // Check for a newer GitHub release once per launch, after startup settles.

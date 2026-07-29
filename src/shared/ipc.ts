@@ -23,6 +23,10 @@ export const IPC = {
   getUpdate: 'update:get',
   updateAvailable: 'update:changed',
   openUpdatePage: 'update:open',
+  startFocus: 'focus:start',
+  endFocus: 'focus:end',
+  getFocus: 'focus:get',
+  focusUpdate: 'focus:changed',
   getAppInfo: 'app:get-info',
   quitApp: 'app:quit'
 } as const
@@ -73,3 +77,11 @@ export interface UpdateInfo {
   notes?: string
   url?: string
 }
+
+/** Temporary "Focus" (app-internal Do-Not-Disturb). `until` is epoch-ms, or null when off. */
+export interface FocusState {
+  until: number | null
+}
+
+/** Preset Focus durations offered in the tray + preferences (minutes). */
+export const FOCUS_PRESETS_MIN = [30, 60, 120]

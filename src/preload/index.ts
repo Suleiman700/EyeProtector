@@ -7,7 +7,8 @@ import {
   type ReminderAction,
   type ReminderPayload,
   type StatusPayload,
-  type UpdateInfo
+  type UpdateInfo,
+  type FocusState
 } from '../shared/ipc'
 import type { AppSettings } from '../shared/settings'
 import type { StatsData } from '../shared/stats'
@@ -60,6 +61,14 @@ const api = {
     const h = (_e: unknown, info: UpdateInfo): void => cb(info)
     ipcRenderer.on(IPC.updateAvailable, h)
     return () => ipcRenderer.removeListener(IPC.updateAvailable, h)
+  },
+  startFocus: (ms: number): void => ipcRenderer.send(IPC.startFocus, ms),
+  endFocus: (): void => ipcRenderer.send(IPC.endFocus),
+  getFocus: (): Promise<FocusState> => ipcRenderer.invoke(IPC.getFocus),
+  onFocusChange: (cb: (f: FocusState) => void): (() => void) => {
+    const h = (_e: unknown, f: FocusState): void => cb(f)
+    ipcRenderer.on(IPC.focusUpdate, h)
+    return () => ipcRenderer.removeListener(IPC.focusUpdate, h)
   }
 }
 

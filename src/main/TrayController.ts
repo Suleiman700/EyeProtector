@@ -1,10 +1,13 @@
 import { Tray, Menu, nativeImage, type NativeImage } from 'electron'
 import { join } from 'path'
+import { FOCUS_PRESETS_MIN } from '../shared/ipc'
 
 interface TrayHandlers {
   openPreferences(): void
   takeBreakNow(): void
   setEnabled(enabled: boolean): void
+  startFocus(ms: number): void
+  endFocus(): void
   quit(): void
 }
 
@@ -14,6 +17,7 @@ export class TrayController {
   private iconDisabled: NativeImage
   private enabled = true
   private countdown: string | null = null
+  private focusUntil: number | null = null
 
   constructor(private handlers: TrayHandlers) {
     this.iconEnabled = nativeImage.createFromPath(
@@ -30,6 +34,12 @@ export class TrayController {
     this.enabled = enabled
     this.tray.setImage(enabled ? this.iconEnabled : this.iconDisabled)
     if (!enabled) this.countdown = null
+    this.render()
+  }
+
+  setFocus(until: number | null): void {
+    this.focusUntil = until
+    if (until !== null) this.countdown = null
     this.render()
   }
 
@@ -104,11 +114,29 @@ export class TrayController {
       { type: 'separator' }
     ]
     if (this.enabled) {
-      if (this.countdown !== null) {
-        items.push({ label: `Next break in ${this.countdown}`, enabled: false })
+      const focusing = this.focusUntil !== null && this.focusUntil > Date.now()
+      if (focusing) {
+        const at = new Date(this.focusUntil as number).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        items.push({ label: `Focused until ${at}`, enabled: false })
+        items.push({ label: 'End focus', click: () => this.handlers.endFocus() })
         items.push({ type: 'separator' })
+      } else {
+        if (this.countdown !== null) {
+          items.push({ label: `Next break in ${this.countdown}`, enabled: false })
+          items.push({ type: 'separator' })
+        }
+        items.push({ label: 'Take a break now', click: () => this.handlers.takeBreakNow() })
+        items.push({
+          label: 'Focus (silence reminders)',
+          submenu: FOCUS_PRESETS_MIN.map((min) => ({
+            label: min >= 60 ? `${min / 60} hour${min > 60 ? 's' : ''}` : `${min} minutes`,
+            click: () => this.handlers.startFocus(min * 60_000)
+          }))
+        })
       }
-      items.push({ label: 'Take a break now', click: () => this.handlers.takeBreakNow() })
     }
     items.push({ label: 'Preferences…', click: () => this.handlers.openPreferences() })
     items.push({ type: 'separator' })

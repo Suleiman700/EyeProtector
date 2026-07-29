@@ -8,7 +8,7 @@ import { BlinkPage } from './pages/BlinkPage'
 import { RemindersPage } from './pages/RemindersPage'
 import { InsightsPage } from './pages/InsightsPage'
 import { AboutPage } from './pages/AboutPage'
-import type { StatusPayload, UpdateInfo } from '../../shared/ipc'
+import type { StatusPayload, UpdateInfo, FocusState } from '../../shared/ipc'
 
 const PAGE_TITLES: Record<PageId, string> = {
   general: 'General',
@@ -27,10 +27,16 @@ export function App(): JSX.Element {
   const [updDismissed, setUpdDismissed] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
 
+  const [focus, setFocus] = useState<FocusState>({ until: null })
+
   useEffect(() => window.eyeprotector.onStatus(setStatus), [])
   useEffect(() => {
     window.eyeprotector.getUpdate().then(setUpd)
     return window.eyeprotector.onUpdateChange(setUpd)
+  }, [])
+  useEffect(() => {
+    window.eyeprotector.getFocus().then(setFocus)
+    return window.eyeprotector.onFocusChange(setFocus)
   }, [])
 
   if (!settings)
@@ -75,6 +81,28 @@ export function App(): JSX.Element {
               style={{ backgroundColor: 'rgba(255,159,10,0.14)', color: '#B25E00' }}
             >
               EyeProtector is paused — nothing will run until you turn it back on.
+            </div>
+          )}
+          {settings.enabled && focus.until !== null && focus.until > Date.now() && (
+            <div
+              className="mb-5 flex items-center gap-3 rounded-lg px-4 py-2.5 text-[13px]"
+              style={{ backgroundColor: 'rgba(94,92,230,0.12)', color: '#3B3AB5' }}
+            >
+              <span className="flex-1">
+                Focus on — reminders are silenced until{' '}
+                {new Date(focus.until).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+                .
+              </span>
+              <button
+                className="rounded-md px-3 py-1 text-[12px] font-medium"
+                style={{ backgroundColor: 'rgba(94,92,230,0.18)', color: '#3B3AB5' }}
+                onClick={() => window.eyeprotector.endFocus()}
+              >
+                End focus
+              </button>
             </div>
           )}
           {upd.status === 'available' && !updDismissed && (
