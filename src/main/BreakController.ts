@@ -19,6 +19,7 @@ export class BreakController {
   private engine: SchedulerEngine
   private ticker: NodeJS.Timeout | null = null
   private active: ActiveBreak | null = null
+  private tickMs = 1000
 
   constructor(
     private settings: SettingsStore,
@@ -32,12 +33,21 @@ export class BreakController {
 
   start(): void {
     this.engine.start(Date.now())
-    this.ticker = setInterval(() => this.tick(), 1000)
+    this.ticker = setInterval(() => this.tick(), this.tickMs)
   }
 
   stop(): void {
     if (this.ticker) clearInterval(this.ticker)
     this.ticker = null
+  }
+
+  /** Adjust the poll interval (battery saver slows it); restarts if running. */
+  setTickMs(ms: number): void {
+    this.tickMs = ms
+    if (this.ticker) {
+      clearInterval(this.ticker)
+      this.ticker = setInterval(() => this.tick(), this.tickMs)
+    }
   }
 
   private tick(): void {

@@ -12,6 +12,7 @@ import type { ReminderPayload } from '../shared/ipc'
 export class ReminderController {
   private ticker: NodeJS.Timeout | null = null
   private nextAt: Record<string, number> = {}
+  private tickMs = 1000
 
   constructor(
     private settings: SettingsStore,
@@ -23,12 +24,21 @@ export class ReminderController {
 
   start(): void {
     this.reconcile(Date.now())
-    this.ticker = setInterval(() => this.tick(), 1000)
+    this.ticker = setInterval(() => this.tick(), this.tickMs)
   }
 
   stop(): void {
     if (this.ticker) clearInterval(this.ticker)
     this.ticker = null
+  }
+
+  /** Adjust the poll interval (battery saver slows it); restarts if running. */
+  setTickMs(ms: number): void {
+    this.tickMs = ms
+    if (this.ticker) {
+      clearInterval(this.ticker)
+      this.ticker = setInterval(() => this.tick(), this.tickMs)
+    }
   }
 
   /** Seed nextAt for new reminders; drop removed ones; keep existing timers. */

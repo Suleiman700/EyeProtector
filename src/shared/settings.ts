@@ -26,6 +26,8 @@ export interface AppSettings {
   preBreakWarningSec: number
   sound: { enabled: boolean; volume: number }
   autostart: boolean
+  /** Reduce activity (slower timers, skip update check) while on battery. */
+  batterySaver: boolean
   theme: string
 }
 
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   preBreakWarningSec: 10,
   sound: { enabled: true, volume: 0.6 },
   autostart: false,
+  batterySaver: true,
   theme: 'calm'
 }
 

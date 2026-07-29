@@ -10,6 +10,7 @@ import { ReminderPresenter } from './ReminderPresenter'
 import { ReminderController } from './ReminderController'
 import { TrayController } from './TrayController'
 import { UpdateChecker } from './UpdateChecker'
+import { PowerController } from './PowerController'
 import {
   IPC,
   type BreakAction,
@@ -186,11 +187,22 @@ app.whenReady().then(() => {
 
   applyRunning()
   settings.onChange(() => applyRunning())
+
+  // Battery saver: slow the scheduler poll interval while reducing activity.
+  const power = new PowerController(settings)
+  const applyTickMs = (ms: number): void => {
+    controller.setTickMs(ms)
+    blinkController.setTickMs(ms)
+    reminderController.setTickMs(ms)
+  }
+  power.onChange = applyTickMs
+  applyTickMs(power.tickMs())
+
   openPreferences()
 
-  // Check for a newer GitHub release once per launch, after startup settles.
-  // Failures are swallowed by the checker (stays silent unless manually run).
-  setTimeout(() => void updates.check(), 4000)
+  // Check for a newer GitHub release once per launch, after startup settles —
+  // skipped while battery saver is reducing activity. Failures are swallowed.
+  if (!power.isActive()) setTimeout(() => void updates.check(), 4000)
 })
 
 app.on('window-all-closed', () => {

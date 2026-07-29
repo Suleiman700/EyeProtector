@@ -31,6 +31,21 @@ export function GeneralPage({
         </Card>
       </div>
 
+      <GroupLabel>Battery</GroupLabel>
+      <div className="mb-7">
+        <Card>
+          <Row label="Reduce activity on battery" last>
+            <Switch
+              checked={settings.batterySaver}
+              onChange={(v) => update({ batterySaver: v })}
+            />
+          </Row>
+        </Card>
+        <p className="mt-2 px-1 text-[12px]" style={{ color: COLORS.secondary }}>
+          When unplugged, slows internal timers and skips the update check. Reminders still run.
+        </p>
+      </div>
+
       <GroupLabel>Sounds</GroupLabel>
       <div className="mb-7">
         <Card>
