@@ -86,6 +86,7 @@ app.whenReady().then(() => {
   tray = new TrayController({
     openPreferences,
     takeBreakNow: () => controller.takeBreakNow(),
+    setEnabled: (enabled: boolean) => settings.set({ enabled }),
     quit: () => app.quit()
   })
 
@@ -106,9 +107,30 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.getAppInfo, () => ({ version: app.getVersion() }))
   ipcMain.on(IPC.quitApp, () => app.quit())
 
-  controller.start()
-  blinkController.start()
-  reminderController.start()
+  let enabledNow = settings.get().enabled
+  const applyEnabled = (s: AppSettings): void => {
+    if (s.enabled) {
+      controller.start()
+      blinkController.start()
+      reminderController.start()
+    } else {
+      controller.stop()
+      blinkController.stop()
+      reminderController.stop()
+      overlay.close()
+      blinkOverlay.close('completed')
+      reminderPresenter.handleAction('skip')
+      broadcastStatus({ status: 'disabled', msUntilNext: -1 })
+    }
+    tray.setEnabled(s.enabled)
+  }
+  applyEnabled(settings.get())
+  settings.onChange((s) => {
+    if (s.enabled !== enabledNow) {
+      enabledNow = s.enabled
+      applyEnabled(s)
+    }
+  })
   openPreferences()
 })
 
