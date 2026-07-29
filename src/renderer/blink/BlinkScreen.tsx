@@ -1,6 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { playChime } from '../shared/chime'
+
+/** Only the primary display's window plays the chime and drives blinkDone. */
+const IS_PRIMARY = new URLSearchParams(window.location.search).get('primary') === '1'
 
 /**
  * The blink mascot: the same circle-ring face used on the preferences
@@ -11,11 +14,16 @@ import { playChime } from '../shared/chime'
  * visible.
  */
 export function BlinkScreen(): JSX.Element {
+  const [durationSec, setDurationSec] = useState(0)
+
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
     window.eyeprotector.getSettings().then((s) => {
-      if (s.sound.enabled) playChime(s.sound.volume)
-      timer = setTimeout(() => window.eyeprotector.blinkDone(), s.blink.durationSec * 1000)
+      setDurationSec(s.blink.durationSec)
+      if (IS_PRIMARY) {
+        if (s.sound.enabled) playChime(s.sound.volume)
+        timer = setTimeout(() => window.eyeprotector.blinkDone(), s.blink.durationSec * 1000)
+      }
     })
     return () => clearTimeout(timer)
   }, [])
@@ -76,6 +84,26 @@ export function BlinkScreen(): JSX.Element {
         <p className="mt-2 text-xs font-medium uppercase tracking-[0.25em] text-white/60">
           rest your eyes
         </p>
+
+        {/* Time-left bar: drains 100% → 0% over the blink duration. */}
+        <div
+          className="mt-6 h-1.5 w-[240px] overflow-hidden rounded-full"
+          style={{ backgroundColor: 'rgba(248,250,252,0.15)' }}
+        >
+          {durationSec > 0 && (
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                background: 'linear-gradient(90deg, #A5F3FC 0%, #93C5FD 60%, #C4B5FD 100%)',
+                boxShadow: '0 0 12px rgba(147,197,253,0.7)'
+              }}
+              initial={{ width: '100%' }}
+              animate={{ width: '0%' }}
+              transition={{ duration: durationSec, ease: 'linear' }}
+            />
+          )}
+        </div>
+
         <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
           esc to dismiss
         </p>
