@@ -5,6 +5,8 @@ import { COLORS, SF_FONT } from './components/controls'
 import { GeneralPage } from './pages/GeneralPage'
 import { BreaksPage } from './pages/BreaksPage'
 import { BlinkPage } from './pages/BlinkPage'
+import { RemindersPage } from './pages/RemindersPage'
+import { InsightsPage } from './pages/InsightsPage'
 import { AboutPage } from './pages/AboutPage'
 import type { StatusPayload } from '../../shared/ipc'
 
@@ -12,6 +14,8 @@ const PAGE_TITLES: Record<PageId, string> = {
   general: 'General',
   breaks: 'Breaks',
   blink: 'Blink Reminders',
+  reminders: 'Reminders',
+  insights: 'Insights',
   about: 'About'
 }
 
@@ -53,6 +57,8 @@ export function App(): JSX.Element {
           {page === 'general' && <GeneralPage settings={settings} update={update} />}
           {page === 'breaks' && <BreaksPage settings={settings} update={update} />}
           {page === 'blink' && <BlinkPage settings={settings} update={update} />}
+          {page === 'reminders' && <RemindersPage settings={settings} update={update} />}
+          {page === 'insights' && <InsightsPage />}
           {page === 'about' && <AboutPage />}
         </div>
       </main>

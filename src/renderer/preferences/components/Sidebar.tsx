@@ -1,7 +1,7 @@
 import { COLORS } from './controls'
 import type { ReactNode } from 'react'
 
-export type PageId = 'general' | 'breaks' | 'blink' | 'about'
+export type PageId = 'general' | 'breaks' | 'blink' | 'reminders' | 'insights' | 'about'
 
 interface Item {
   id: PageId
@@ -48,6 +48,21 @@ const GLYPH_INFO = (
   </>
 )
 
+const GLYPH_BELL = (
+  <path
+    d="M8 2.2a3.2 3.2 0 0 0-3.2 3.2c0 3.4-1 4.4-1.4 4.9-.2.2-.05.6.25.6h8.8c.3 0 .45-.4.25-.6-.4-.5-1.4-1.5-1.4-4.9A3.2 3.2 0 0 0 8 2.2zm0 11.6a1.6 1.6 0 0 0 1.5-1.1h-3A1.6 1.6 0 0 0 8 13.8z"
+    fill="currentColor"
+  />
+)
+
+const GLYPH_CHART = (
+  <>
+    <rect x="2.6" y="8.5" width="2.4" height="5" rx="0.6" fill="currentColor" />
+    <rect x="6.8" y="5.5" width="2.4" height="8" rx="0.6" fill="currentColor" />
+    <rect x="11" y="2.5" width="2.4" height="11" rx="0.6" fill="currentColor" />
+  </>
+)
+
 const SECTIONS: { header: string | null; items: Item[] }[] = [
   {
     header: null,
@@ -57,7 +72,9 @@ const SECTIONS: { header: string | null; items: Item[] }[] = [
     header: 'Productivity & Care',
     items: [
       { id: 'breaks', label: 'Breaks', color: '#30B0C7', glyph: GLYPH_CUP },
-      { id: 'blink', label: 'Blink Reminders', color: '#007AFF', glyph: GLYPH_EYE }
+      { id: 'blink', label: 'Blink Reminders', color: '#007AFF', glyph: GLYPH_EYE },
+      { id: 'reminders', label: 'Reminders', color: '#FF375F', glyph: GLYPH_BELL },
+      { id: 'insights', label: 'Insights', color: '#5E5CE6', glyph: GLYPH_CHART }
     ]
   },
   {
