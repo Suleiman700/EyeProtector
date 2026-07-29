@@ -17,6 +17,7 @@ export interface BlinkSettings {
 export const BLINK_DURATION_OPTIONS = [2, 4, 6, 8, 10, 15] // seconds
 
 export interface AppSettings {
+  enabled: boolean
   schemaVersion: number
   short: BreakSettings
   long: BreakSettings
@@ -29,6 +30,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  enabled: true,
   schemaVersion: 1,
   short: { enabled: true, intervalMin: 20, durationSec: 20, strict: false },
   long: { enabled: true, intervalMin: 60, durationSec: 300, strict: false },
