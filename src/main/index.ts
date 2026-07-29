@@ -92,6 +92,7 @@ app.whenReady().then(() => {
 
   const controller = new BreakController(settings, overlay, broadcastStatus, stats)
   overlay.onEscape = () => controller.handleAction('skip')
+  overlay.onPostpone = () => controller.handleAction('postpone')
   const blinkController = new BlinkController(settings, blinkOverlay, isScreenBusy)
   const reminderController = new ReminderController(settings, reminderPresenter, isScreenBusy)
 

@@ -22,6 +22,11 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.breakStart, h)
   },
   breakAction: (action: BreakAction): void => ipcRenderer.send(IPC.breakAction, action),
+  onBreakExtend: (cb: (ms: number) => void): (() => void) => {
+    const h = (_e: unknown, ms: number): void => cb(ms)
+    ipcRenderer.on(IPC.breakExtend, h)
+    return () => ipcRenderer.removeListener(IPC.breakExtend, h)
+  },
   takeBreakNow: (type?: 'short' | 'long'): void => ipcRenderer.send(IPC.takeBreakNow, type),
   getBreak: (): Promise<BreakPayload | null> => ipcRenderer.invoke(IPC.getBreak),
   takeBlinkNow: (): void => ipcRenderer.send(IPC.takeBlinkNow),

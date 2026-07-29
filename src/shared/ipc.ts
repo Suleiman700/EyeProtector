@@ -6,6 +6,7 @@ export const IPC = {
   setSettings: 'settings:set',
   breakStart: 'break:start',
   breakAction: 'break:action',
+  breakExtend: 'break:extend',
   takeBreakNow: 'break:take-now',
   getBreak: 'break:get',
   blinkDone: 'blink:done',
@@ -40,6 +41,10 @@ export interface BreakPayload {
 }
 
 export type BreakAction = 'complete' | 'skip' | 'postpone'
+
+/** Per-press add-time increment and the cap on total extra time for a break. */
+export const BREAK_EXTEND_MS = 60_000
+export const BREAK_EXTEND_CAP_MS = 600_000
 
 /** msUntilNext is -1 when no break type is enabled. */
 

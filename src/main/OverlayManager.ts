@@ -1,14 +1,16 @@
 import { BrowserWindow, globalShortcut, screen } from 'electron'
 import { join } from 'path'
-import { IPC, type BreakPayload } from '../shared/ipc'
+import { IPC, BREAK_EXTEND_MS, type BreakPayload } from '../shared/ipc'
 
 export class OverlayManager {
   private wins: BrowserWindow[] = []
   private currentPayload: BreakPayload | null = null
-  private escRegistered = false
+  private shortcuts: string[] = []
 
-  /** Invoked when the user presses ESC during a non-strict break. */
+  /** Invoked when the user skips a non-strict break (ESC or X). */
   onEscape: (() => void) | null = null
+  /** Invoked when the user postpones a non-strict break (P). */
+  onPostpone: (() => void) | null = null
 
   getCurrentPayload(): BreakPayload | null {
     return this.currentPayload
@@ -64,16 +66,32 @@ export class OverlayManager {
       this.wins.push(win)
     }
 
-    // ESC-to-skip is a single global shortcut (windows never take focus), held
-    // while a non-strict break is visible.
+    // The windows never take focus, so break keys are global shortcuts held
+    // only while the break is visible. Skip/postpone are for non-strict breaks;
+    // add-time works even on strict breaks (more rest is always allowed).
+    const register = (accel: string, fn: () => void): void => {
+      if (globalShortcut.register(accel, fn)) this.shortcuts.push(accel)
+    }
     if (!payload.strict) {
-      globalShortcut.register('Escape', () => this.onEscape?.())
-      this.escRegistered = true
+      register('Escape', () => this.onEscape?.())
+      register('X', () => this.onEscape?.())
+      register('P', () => this.onPostpone?.())
+    }
+    const extend = (): void => this.extend(BREAK_EXTEND_MS)
+    register('Up', extend)
+    register('Plus', extend)
+    register('numadd', extend)
+  }
+
+  /** Broadcast an add-time increment to every break window's countdown. */
+  private extend(ms: number): void {
+    for (const win of this.wins) {
+      if (!win.isDestroyed()) win.webContents.send(IPC.breakExtend, ms)
     }
   }
 
   close(): void {
-    this.unregisterEsc()
+    this.unregisterShortcuts()
     for (const win of this.wins) {
       if (!win.isDestroyed()) win.close()
     }
@@ -81,9 +99,8 @@ export class OverlayManager {
     this.currentPayload = null
   }
 
-  private unregisterEsc(): void {
-    if (!this.escRegistered) return
-    globalShortcut.unregister('Escape')
-    this.escRegistered = false
+  private unregisterShortcuts(): void {
+    for (const accel of this.shortcuts) globalShortcut.unregister(accel)
+    this.shortcuts = []
   }
 }
