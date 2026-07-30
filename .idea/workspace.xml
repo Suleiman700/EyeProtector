@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="dc4cf5df-b3f5-4fc4-bd37-1cbe35249fbf" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/BlinkOverlay.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/BlinkOverlay.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.env-example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/out/main/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/preload/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/out/preload/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/renderer/blink/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/blink/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/renderer/break/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/break/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/renderer/preferences/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/preferences/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,9 +26,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="dockeristoredeveloper-payments:latest" />
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="3H5Ueo3W9uanl8Hd7WLf4jeRXNw" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -28,20 +38,31 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "feat/blink-duration-ios-redesign",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/Projects/EyeProtector",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "http.proxy",
     "ts.external.directory.path": "/Users/suleiman/DockerPrivate/Suleiman/EyeProtector/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Projects\EyeProtector" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.29346.257" />
-        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.29346.257" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PS-252.27397.112" />
+        <option value="bundled-php-predefined-a98d8de5180a-b35feea871ed-com.jetbrains.php.sharedIndexes-PS-252.27397.112" />
       </set>
     </attachedChunks>
   </component>
@@ -53,6 +74,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785157520233</updated>
       <workItem from="1785157521255" duration="7651000" />
+      <workItem from="1785438146468" duration="1318000" />
     </task>
     <servers />
   </component>
