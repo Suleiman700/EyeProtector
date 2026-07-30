@@ -8,7 +8,7 @@ A cross-platform desktop app — **macOS · Windows · Linux** — built with El
 It lives quietly in your tray and enforces the **20-20-20 rule** with beautiful full-screen
 break overlays on every monitor.
 
-<img src="docs/screenshots/break.png" alt="EyeProtector break overlay" width="720" />
+<img src="docs/screenshots/showcase.png" alt="EyeProtector break overlay" width="720" />
 
 </div>
 
@@ -16,7 +16,7 @@ break overlays on every monitor.
 
 ## ⬇️ Download
 
-Grab the latest installer from the [**Releases**](https://github.com/iStoreJaber/EyeProtector/releases) page:
+Grab the latest installer from the [**Releases**](https://github.com/Suleiman700/EyeProtector/releases) page:
 
 | Platform | File |
 |----------|------|
@@ -131,3 +131,9 @@ electron-builder only builds for the OS it runs on, so produce the `.dmg` on mac
 | Idle / fullscreen detection | Electron `powerMonitor` + display heuristics |
 | Packaging | electron-builder → `.dmg` / `.exe` / `.AppImage` |
 | Tests | Vitest |
+
+---
+
+## 📄 License
+
+Released under the [MIT License](LICENSE). Copyright © iStoreJaber.

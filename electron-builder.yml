@@ -40,5 +40,5 @@ nsis:
 # published. `npm run dist:publish` needs a GH_TOKEN with repo scope in the env.
 publish:
   provider: github
-  owner: iStoreJaber
+  owner: Suleiman700
   repo: EyeProtector

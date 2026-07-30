@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { isNewer } from '../shared/version'
 import type { UpdateInfo } from '../shared/ipc'
 
-const REPO = 'iStoreJaber/EyeProtector'
+const REPO = 'Suleiman700/EyeProtector'
 const API = `https://api.github.com/repos/${REPO}/releases/latest`
 const TIMEOUT_MS = 8000
 
