@@ -5,14 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dc4cf5df-b3f5-4fc4-bd37-1cbe35249fbf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env-example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/out/main/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/preload/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/out/preload/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/renderer/blink/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/blink/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/renderer/break/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/break/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/renderer/preferences/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/out/renderer/preferences/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +67,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785157520233</updated>
       <workItem from="1785157521255" duration="7651000" />
-      <workItem from="1785438146468" duration="1318000" />
+      <workItem from="1785438146468" duration="2805000" />
     </task>
     <servers />
   </component>
